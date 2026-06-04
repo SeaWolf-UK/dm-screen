@@ -3451,6 +3451,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchSources() {
   try {
     const result = await apiGet('/api/sources');
+    console.log('DEBUG fetchSources: result =', result);
     if (result?.sources && result.sources.length) {
       const sourceFilter = document.getElementById('monster-source-filter');
       const defaultOptions = [
@@ -3465,9 +3466,12 @@ async function fetchSources() {
         const name = typeof s === 'object' ? s.name : s;
         if (name) sourceNames.add(name);
       });
+      console.log('DEBUG fetchSources: server sources count =', result.sources.length);
+      console.log('DEBUG fetchSources: sourceNames from server =', Array.from(sourceNames).slice(0, 10));
       defaultOptions.forEach(opt => sourceNames.add(opt));
       // Sort and add to dropdown
       const sorted = Array.from(sourceNames).sort();
+      console.log('DEBUG fetchSources: total unique sources =', sorted.length);
       sourceFilter.innerHTML = '<option value="">Any Book</option>';
       sorted.forEach(name => {
         sourceFilter.innerHTML += '<option value="' + name + '">' + name + '</option>';
