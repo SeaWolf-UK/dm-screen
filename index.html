@@ -3443,7 +3443,41 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fsBtn) fsBtn.addEventListener('click', toggleFullscreenQR);
   const fsOverlay = document.getElementById('fullscreen-qr-overlay');
   if (fsOverlay) fsOverlay.addEventListener('click', (e) => { if (e.target.id === 'fullscreen-qr-overlay') toggleFullscreenQR(); });
+  // Fetch sources (books) list from server
+  fetchSources();
 });
+
+/* ---------- SOURCES (BOOKS) ---------- */
+async function fetchSources() {
+  try {
+    const result = await apiGet('/api/sources');
+    if (result?.sources && result.sources.length) {
+      const sourceFilter = document.getElementById('monster-source-filter');
+      const defaultOptions = [
+        'Monster Manual', 'Volo\'s Guide to Monsters', 'Mordenkainen\'s Tome of Foes',
+        'Fizban\'s Treasury of Dragons', 'Curse of Strahd', 'Out of the Abyss',
+        'Storm Kings Thunder', 'Tomb of Annihilation', 'Waterdeep: Dragon Heist',
+        'Waterdeep: Dungeon of the Mad Mage', 'Lost Mine of Phandelver'
+      ];
+      // Build set of source names from server + defaults
+      const sourceNames = new Set();
+      result.sources.forEach(s => {
+        const name = typeof s === 'object' ? s.name : s;
+        if (name) sourceNames.add(name);
+      });
+      defaultOptions.forEach(opt => sourceNames.add(opt));
+      // Sort and add to dropdown
+      const sorted = Array.from(sourceNames).sort();
+      sourceFilter.innerHTML = '<option value="">Any Book</option>';
+      sorted.forEach(name => {
+        sourceFilter.innerHTML += '<option value="' + name + '">' + name + '</option>';
+      });
+      logRPC('>> SOURCES: Loaded ' + sorted.length + ' book(s)');
+    }
+  } catch (e) {
+    console.error('Failed to load sources:', e);
+  }
+}
 
 /* All UI updates are instantaneous — zero animation, zero easing. */
 </script>

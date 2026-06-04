@@ -1346,6 +1346,38 @@ async function start() {
         return;
       }
 
+      /* ---------- GET SOURCES (BOOKS) ---------- */
+      if (pathname === '/api/sources' && req.method === 'GET') {
+        try {
+          const result = await mcp.callTool('get_game_config');
+          const sources = result?.sources || [];
+          console.log('[sources] Loaded', sources.length, 'source(s)');
+          res.writeHead(200);
+          res.end(JSON.stringify({ sources }));
+        } catch (err) {
+          console.error('[sources] FAILED:', err.message);
+          // Fallback to common sources
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            sources: [
+              { name: 'Monster Manual' },
+              { name: 'Volo\'s Guide to Monsters' },
+              { name: 'Mordenkainen\'s Tome of Foes' },
+              { name: 'Fizban\'s Treasury of Dragons' },
+              { name: 'Curse of Strahd' },
+              { name: 'Out of the Abyss' },
+              { name: 'Storm Kings Thunder' },
+              { name: 'Tomb of Annihilation' },
+              { name: 'Waterdeep: Dragon Heist' },
+              { name: 'Waterdeep: Dungeon of the Mad Mage' },
+              { name: 'Lost Mine of Phandelver' },
+              { name: ' Essentials Rules (2024)' }
+            ]
+          }));
+        }
+        return;
+      }
+
       /* ---------- ENCOUNTER DIFFICULTY ---------- */
       if (pathname === '/api/encounter-difficulty' && req.method === 'POST') {
         const body = await readBody(req);
