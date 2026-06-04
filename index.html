@@ -341,18 +341,45 @@
       <div class="header" style="margin-top:12px;">Monster Database</div>
       <div class="card">
         <input class="input" id="monster-search" placeholder="Search D&D Beyond monsters..." style="margin-bottom:4px;">
-        <select class="input" id="monster-cr-filter" style="margin-bottom:4px;font-size:12px;">
-          <option value="">Any CR</option>
-          <option value="0">CR 0</option>
-          <option value="1/8">CR 1/8</option>
-          <option value="1/4">CR 1/4</option>
-          <option value="1/2">CR 1/2</option>
-          <option value="1">CR 1</option>
-          <option value="2">CR 2</option>
-          <option value="3">CR 3</option>
-          <option value="4">CR 4</option>
-          <option value="5">CR 5+</option>
-        </select>
+        <div style="display:flex;gap:4px;margin-bottom:4px;">
+          <select class="input" id="monster-cr-filter" style="flex:1;">
+            <option value="">Any CR</option>
+            <option value="0">CR 0</option>
+            <option value="1/8">CR 1/8</option>
+            <option value="1/4">CR 1/4</option>
+            <option value="1/2">CR 1/2</option>
+            <option value="1">CR 1</option>
+            <option value="2">CR 2</option>
+            <option value="3">CR 3</option>
+            <option value="4">CR 4</option>
+            <option value="5">CR 5+</option>
+          </select>
+          <select class="input" id="monster-environment-filter" style="flex:1;">
+            <option value="">Any Env</option>
+            <option value="Arctic">Arctic</option>
+            <option value="Coastal">Coastal</option>
+            <option value="Desert">Desert</option>
+            <option value="Forest">Forest</option>
+            <option value="Grassland">Grassland</option>
+            <option value="Hill">Hill</option>
+            <option value="Mountain">Mountain</option>
+            <option value="Swamp">Swamp</option>
+            <option value="Underdark">Underdark</option>
+            <option value="Underwater">Underwater</option>
+            <option value="Urban">Urban</option>
+          </select>
+          <select class="input" id="monster-source-filter" style="flex:1;">
+            <option value="">Any Book</option>
+            <option value="Monster Manual">Monster Manual</option>
+            <option value="Volo's Guide">Volo's Guide</option>
+            <option value="Mordenkainens Tome">Mordenkainens Tome</option>
+            <option value="Fizbans Treasury">Fizbans Treasury</option>
+            <option value="Curse of Strahd">Curse of Strahd</option>
+            <option value="Out of the Abyss">Out of the Abyss</option>
+            <option value="Storm Kings Thunder">Storm Kings Thunder</option>
+            <option value="Tomb of Annihilation">Tomb of Annihilation</option>
+          </select>
+        </div>
         <button class="button secondary" id="search-monsters-btn" style="width:auto;font-size:12px;margin-bottom:4px;">🔍 SEARCH</button>
         <div id="monster-search-results" class="list" style="max-height:250px;overflow-y:auto;font-size:12px;"></div>
         <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
@@ -1830,12 +1857,14 @@ let monsterSearchResults = [];
 async function searchMonsters() {
   const query = document.getElementById('monster-search').value.trim();
   const crFilter = document.getElementById('monster-cr-filter').value;
+  const sourceFilter = document.getElementById('monster-source-filter').value;
   const resultsDiv = document.getElementById('monster-search-results');
   resultsDiv.innerHTML = '<div style="color:var(--muted);padding:4px;">Searching...</div>';
 
   try {
     const params = { name: query };
     if (crFilter) params.cr = crFilter;
+    if (sourceFilter) params.source = sourceFilter;
     const results = await apiPost('/api/search-monsters', params);
     monsterSearchResults = results.results || [];
     renderMonsterSearchResults();

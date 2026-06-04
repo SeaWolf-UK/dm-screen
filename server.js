@@ -1298,7 +1298,8 @@ async function start() {
         const body = await readBody(req);
         const query = body.name || body.query || '';
         const cr = body.cr || '';
-        console.log('[search-monsters] Query:', query, '| CR:', cr);
+        const source = body.source || '';
+        console.log('[search-monsters] Query:', query, '| CR:', cr, '| Source:', source);
         if (!query.trim()) {
           res.writeHead(400);
           res.end(JSON.stringify({ error: 'Search query required' }));
@@ -1307,6 +1308,7 @@ async function start() {
         try {
           const mcpParams = { name: query };
           if (cr) mcpParams.cr = cr;
+          if (source) mcpParams.source = source;
           const result = await mcp.callTool('search_monsters', mcpParams);
           console.log('[search-monsters] Raw content items:', result.content?.length || 0);
           // Parse markdown text response from MCP
