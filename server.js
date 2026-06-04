@@ -1349,11 +1349,13 @@ async function start() {
       /* ---------- GET SOURCES (BOOKS) ---------- */
       if (pathname === '/api/sources' && req.method === 'GET') {
         try {
-          const result = await mcp.callTool('get_game_config');
-          const sources = result?.sources || [];
+          // Fetch sources directly from D&D Beyond API
+          const sourcesResult = await fetchWithTimeout('https://www.dndbeyond.com/api/config/json', { timeout: 10000 });
+          const data = await sourcesResult.json();
+          const sources = data.sources || [];
           console.log('[sources] Loaded', sources.length, 'source(s)');
           res.writeHead(200);
-          res.end(JSON.stringify({ sources }));
+          res.end(JSON.stringify({ sources: sources.map(s => ({ name: s.description || s.name })) }));
         } catch (err) {
           console.error('[sources] FAILED:', err.message);
           // Fallback to common sources
@@ -1371,7 +1373,7 @@ async function start() {
               { name: 'Waterdeep: Dragon Heist' },
               { name: 'Waterdeep: Dungeon of the Mad Mage' },
               { name: 'Lost Mine of Phandelver' },
-              { name: ' Essentials Rules (2024)' }
+              { name: 'D&D Beyond Rules' }
             ]
           }));
         }
