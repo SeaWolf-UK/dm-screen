@@ -1,0 +1,46 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Desktop shortcuts
+*.desktop
+Launch*.sh
+Start*.desktop
+*Start*.desktop
+"\342\226\266 Start DM Cockpit.desktop"
+
+# Settings
+.settings.local.json
+
+# Server logs
+server.log
+
+# Node modules
+node_modules/
+
+# Campaign data (user content)
+campaign/
+
+# Adventure test files
+test_adventure.md
+verify_test.txt
+test_flush.txt
+
+# Playwright MCP cache
+.playwright-mcp/
+.playwright-mcp/*
+
+# Backup files
+*.bak
+*.backup
+
+# Images (optional - uncomment if you don't want images in repo)
+# *.png
+# *.jpg
+# *.jpeg
