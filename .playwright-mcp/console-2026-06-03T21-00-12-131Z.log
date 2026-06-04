@@ -1,0 +1,4 @@
+[      18ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8765/:0
+[   66458ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[   66709ms] [LOG] [INFO] Application loading initial data...  @ http://localhost:8765/soundboard:1261
+[   66724ms] [LOG] [INFO] Initial data loaded successfully.  @ http://localhost:8765/soundboard:1261

@@ -1,0 +1,45 @@
+- generic [ref=e27]:
+  - generic [ref=e28]:
+    - generic [ref=e29] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e30] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e31] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e32] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e33] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e34]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (Kimi-k2.5:cloud)"
+  - generic [ref=e136]:
+    - generic [ref=e137]:
+      - generic [ref=e138]: File Explorer & Beat Navigator
+      - button "LOAD ADVENTURE FILE" [active] [ref=e139] [cursor=pointer]
+      - generic [ref=e140]: Beat Navigator
+      - list
+    - generic [ref=e141]:
+      - generic [ref=e142]: Truth Matrix
+      - table [ref=e143]:
+        - rowgroup [ref=e144]:
+          - row "Players Believe Actual Truth" [ref=e145]:
+            - columnheader "Players Believe" [ref=e146]
+            - columnheader "Actual Truth" [ref=e147]
+        - rowgroup
+      - generic [ref=e148]: Environmental Clock
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - text: "Stage:"
+          - strong [ref=e151]: —
+        - generic [ref=e152]:
+          - text: "DC:"
+          - strong [ref=e153]: —
+        - generic [ref=e154]: —
+    - generic [ref=e155]:
+      - generic [ref=e156]: Audio & Prop Director
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - strong [ref=e159]: "Cue:"
+          - text: "\"Cave_Drip_01.mp3\" (loop)"
+        - generic [ref=e160]:
+          - button "PLAY" [ref=e161] [cursor=pointer]
+          - button "PAUSE" [ref=e162] [cursor=pointer]
+          - button "STOP" [ref=e163] [cursor=pointer]
+      - generic [ref=e164]:
+        - blockquote [ref=e165]: "\"You hear distant chanting echoing through the tunnel…\""
+        - button "COPY TO CLIPBOARD" [ref=e166] [cursor=pointer]
+  - generic [ref=e135]: "[12:57:42] >> ADVENTURE: Parsed 7 encounter(s) with 13 creature group(s)"

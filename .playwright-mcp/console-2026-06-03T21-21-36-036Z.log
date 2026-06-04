@@ -1,0 +1,9 @@
+[       6ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[       7ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[      49ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[     283ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ https://unpkg.com/react-dom@18/umd/react-dom.development.js:29904
+[     347ms] [LOG] [INFO] Application loading initial data...  @ http://localhost:8765/soundboard:1261
+[     358ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[     358ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/icon.svg:0
+[     359ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[     360ms] [LOG] [INFO] Initial data loaded successfully.  @ http://localhost:8765/soundboard:1261

@@ -1,0 +1,14 @@
+- generic [ref=e25]:
+  - generic [ref=e26]:
+    - generic [ref=e27] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e28] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e29] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e30] [cursor=pointer]: "F4: ADVENTURES"
+  - generic [ref=e31]: "CAMPAIGN: DEFAULT CAMPAIGN // AI: OLLAMA_LOCAL (llama3.1)"
+  - generic [ref=e32]:
+    - generic [ref=e34]: DDB PARTY TELEMETRY
+    - generic [ref=e35]:
+      - generic [ref=e36]: Detail Inspection Sheet
+      - generic [ref=e37]: Select a character from telemetry.
+    - generic [ref=e39]: Party Inventory & Currency Ledger
+  - generic [ref=e40]: "[15:34:31] >> TELEMETRY: dndbeyond-mcp.get_party {campaignId:default}"

@@ -1,0 +1,127 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - generic [ref=e144]:
+    - generic [ref=e145]:
+      - generic [ref=e146]: Mini Telemetry
+      - generic [ref=e147]:
+        - generic [ref=e148]: Luna Shadowscale
+        - generic [ref=e149]: AC 16 | LVL 4
+        - generic [ref=e152]: 31/31
+      - generic [ref=e153]:
+        - generic [ref=e154]: ERROR CODE 303
+        - generic [ref=e155]: AC 14 | LVL 4
+        - generic [ref=e158]: 40/40
+      - generic [ref=e159]:
+        - generic [ref=e160]: Chuck
+        - generic [ref=e161]: AC 13 | LVL 4
+        - generic [ref=e164]: 27/29
+      - generic [ref=e165]:
+        - generic [ref=e166]: Cosimo
+        - generic [ref=e167]: AC 14 | LVL 4
+        - generic [ref=e170]: 27/27
+      - generic [ref=e171]:
+        - generic [ref=e172]: Sylvia
+        - generic [ref=e173]: AC 12 | LVL 4
+        - generic [ref=e176]: 26/26
+      - generic [ref=e177]:
+        - generic [ref=e178]: Cafell
+        - generic [ref=e179]: AC 10 | LVL 4
+        - generic [ref=e182]: 27/27
+      - generic [ref=e183]:
+        - generic [ref=e184]: Carric Ravencrest
+        - generic [ref=e185]: AC 12 | LVL 4
+        - generic [ref=e188]: 18/19
+    - generic [ref=e189]:
+      - generic [ref=e190]: Encounter Library
+      - generic [ref=e192]:
+        - button "+ NEW" [ref=e193] [cursor=pointer]
+        - button "💾 SAVE" [ref=e194] [cursor=pointer]
+      - generic [ref=e195]: Monster Database
+      - generic [ref=e196]:
+        - textbox "Search D&D Beyond monsters..." [ref=e197]
+        - combobox [ref=e198]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e199] [cursor=pointer]
+    - generic [ref=e201]:
+      - generic [ref=e202]: Encounter Builder
+      - generic [ref=e203]:
+        - generic [ref=e204]: Party Selection
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - checkbox [checked] [ref=e207]
+            - generic [ref=e208]: Luna Shadowscale (LVL 4)
+          - generic [ref=e209]:
+            - checkbox [checked] [ref=e210]
+            - generic [ref=e211]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e212]:
+            - checkbox [checked] [ref=e213]
+            - generic [ref=e214]: Chuck (LVL 4)
+          - generic [ref=e215]:
+            - checkbox [checked] [ref=e216]
+            - generic [ref=e217]: Cosimo (LVL 4)
+          - generic [ref=e218]:
+            - checkbox [checked] [ref=e219]
+            - generic [ref=e220]: Sylvia (LVL 4)
+          - generic [ref=e221]:
+            - checkbox [checked] [ref=e222]
+            - generic [ref=e223]: Cafell (LVL 4)
+          - generic [ref=e224]:
+            - checkbox [checked] [ref=e225]
+            - generic [ref=e226]: Carric Ravencrest (LVL 4)
+      - generic [ref=e227]:
+        - generic [ref=e228]: Encounter Difficulty
+        - generic [ref=e229]:
+          - generic [ref=e230]:
+            - generic [ref=e231]: "Easy:"
+            - generic [ref=e232]: –
+          - generic [ref=e233]:
+            - generic [ref=e234]: "Medium:"
+            - generic [ref=e235]: –
+          - generic [ref=e236]:
+            - generic [ref=e237]: "Hard:"
+            - generic [ref=e238]: –
+          - generic [ref=e239]:
+            - generic [ref=e240]: "Deadly:"
+            - generic [ref=e241]: –
+          - generic [ref=e243]: NO ENCOUNTER
+      - generic [ref=e245]:
+        - generic [ref=e246]: Current Encounter
+        - button "CLEAR" [ref=e247] [cursor=pointer]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e248] [cursor=pointer]
+    - generic [ref=e249]:
+      - generic [ref=e250]: Tactical Quick‑Ref
+      - generic [ref=e251]:
+        - generic [ref=e252]:
+          - strong [ref=e253]: "Actions:"
+          - text: —
+        - generic [ref=e254]:
+          - strong [ref=e255]: "Legendary:"
+          - text: —
+        - generic [ref=e256]:
+          - strong [ref=e257]: "Reactions:"
+          - text: —
+  - generic [ref=e137]:
+    - generic [ref=e138]: TTRPG SOUNDBOARD
+    - generic [ref=e139]:
+      - text: The soundboard opens in its own window to prevent audio memory from competing with the DM Cockpit renderer.
+      - text: Once opened, click the
+      - strong [ref=e140]: 🎵
+      - text: button on any encounter in the Encounter Builder (F2) to auto-generate a soundscape.
+    - button "[ OPEN SOUNDBOARD IN NEW WINDOW ]" [ref=e141] [cursor=pointer]
+    - generic [ref=e142]: Soundboard window opened
+  - generic [ref=e143]: "[21:06:24] >> SWITCH workspace 2"

@@ -1,0 +1,285 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (kimi-k2.5:cloud)"
+  - generic [ref=e161]:
+    - generic [ref=e162]:
+      - generic [ref=e270]: Mini Telemetry
+      - generic [ref=e271]:
+        - generic [ref=e272]: Luna Shadowscale
+        - generic [ref=e273]: AC 16 | LVL 4
+        - generic [ref=e276]: 31/31
+      - generic [ref=e277]:
+        - generic [ref=e278]: ERROR CODE 303
+        - generic [ref=e279]: AC 14 | LVL 4
+        - generic [ref=e282]: 40/40
+      - generic [ref=e283]:
+        - generic [ref=e284]: Chuck
+        - generic [ref=e285]: AC 13 | LVL 4
+        - generic [ref=e288]: 27/29
+      - generic [ref=e289]:
+        - generic [ref=e290]: Cosimo
+        - generic [ref=e291]: AC 14 | LVL 4
+        - generic [ref=e294]: 27/27
+      - generic [ref=e295]:
+        - generic [ref=e296]: Sylvia
+        - generic [ref=e297]: AC 12 | LVL 4
+        - generic [ref=e300]: 26/26
+      - generic [ref=e301]:
+        - generic [ref=e302]: Cafell
+        - generic [ref=e303]: AC 10 | LVL 4
+        - generic [ref=e306]: 27/27
+      - generic [ref=e307]:
+        - generic [ref=e308]: Carric Ravencrest
+        - generic [ref=e309]: AC 12 | LVL 4
+        - generic [ref=e312]: 18/19
+    - generic [ref=e206]:
+      - generic [ref=e207]: Encounter Library
+      - generic [ref=e209]:
+        - button "+ NEW" [ref=e210] [cursor=pointer]
+        - button "💾 SAVE" [ref=e211] [cursor=pointer]
+      - generic [ref=e212]: Monster Database
+      - generic [ref=e213]:
+        - textbox "Search D&D Beyond monsters..." [ref=e214]: goblin
+        - combobox [ref=e215]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [active] [ref=e216] [cursor=pointer]
+        - generic [ref=e334]:
+          - generic [ref=e335] [cursor=pointer]:
+            - generic [ref=e336]:
+              - generic [ref=e337]:
+                - strong [ref=e338]: Goblin
+                - generic [ref=e339]: 5E
+                - generic [ref=e340]: CR 0.25
+              - button "+ ADD" [ref=e341]
+            - generic [ref=e342]: Humanoid • Small
+          - generic [ref=e343] [cursor=pointer]:
+            - generic [ref=e344]:
+              - generic [ref=e345]:
+                - strong [ref=e346]: Goblin Boss
+                - generic [ref=e347]: 5E
+                - generic [ref=e348]: CR 1
+              - button "+ ADD" [ref=e349]
+            - generic [ref=e350]: Humanoid • Small
+          - generic [ref=e351] [cursor=pointer]:
+            - generic [ref=e352]:
+              - generic [ref=e353]:
+                - strong [ref=e354]: Goblin Lackey
+                - generic [ref=e355]: 5.5E
+                - generic [ref=e356]: CR 0.25
+              - button "+ ADD" [ref=e357]
+            - generic [ref=e358]: Humanoid • Small
+          - generic [ref=e359] [cursor=pointer]:
+            - generic [ref=e360]:
+              - generic [ref=e361]:
+                - strong [ref=e362]: Goblin Sniper
+                - generic [ref=e363]: 5.5E
+                - generic [ref=e364]: CR 0.5
+              - button "+ ADD" [ref=e365]
+            - generic [ref=e366]: Humanoid • Small
+          - generic [ref=e367] [cursor=pointer]:
+            - generic [ref=e368]:
+              - generic [ref=e369]:
+                - strong [ref=e370]: Goblin Warrior
+                - generic [ref=e371]: 5.5E
+                - generic [ref=e372]: CR 0.25
+              - button "+ ADD" [ref=e373]
+            - generic [ref=e374]: Humanoid • Small
+          - generic [ref=e375] [cursor=pointer]:
+            - generic [ref=e376]:
+              - generic [ref=e377]:
+                - strong [ref=e378]: Goblin Spinecleaver
+                - generic [ref=e379]: 5.5E
+                - generic [ref=e380]: CR 1
+              - button "+ ADD" [ref=e381]
+            - generic [ref=e382]: Humanoid • Small
+          - generic [ref=e383] [cursor=pointer]:
+            - generic [ref=e384]:
+              - generic [ref=e385]:
+                - strong [ref=e386]: Goblin Warrior
+                - generic [ref=e387]: 5.5E
+                - generic [ref=e388]: CR 0.25
+              - button "+ ADD" [ref=e389]
+            - generic [ref=e390]: Fey • Small
+          - generic [ref=e391] [cursor=pointer]:
+            - generic [ref=e392]:
+              - generic [ref=e393]:
+                - strong [ref=e394]: Goblin Archer
+                - generic [ref=e395]: 5.5E
+                - generic [ref=e396]: CR 0.25
+              - button "+ ADD" [ref=e397]
+            - generic [ref=e398]: Humanoid • Small
+          - generic [ref=e399] [cursor=pointer]:
+            - generic [ref=e400]:
+              - generic [ref=e401]:
+                - strong [ref=e402]: Goblin Assassin
+                - generic [ref=e403]: 5.5E
+                - generic [ref=e404]: CR 0.5
+              - button "+ ADD" [ref=e405]
+            - generic [ref=e406]: Humanoid • Small
+          - generic [ref=e407] [cursor=pointer]:
+            - generic [ref=e408]:
+              - generic [ref=e409]:
+                - strong [ref=e410]: Goblin Boss
+                - generic [ref=e411]: 5.5E
+                - generic [ref=e412]: CR 1
+              - button "+ ADD" [ref=e413]
+            - generic [ref=e414]: Fey • Small
+          - generic [ref=e415] [cursor=pointer]:
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - strong [ref=e418]: Goblin Commoner
+                - generic [ref=e419]: 5.5E
+                - generic [ref=e420]: CR 0
+              - button "+ ADD" [ref=e421]
+            - generic [ref=e422]: Humanoid • Small
+          - generic [ref=e423] [cursor=pointer]:
+            - generic [ref=e424]:
+              - generic [ref=e425]:
+                - strong [ref=e426]: Goblin Minion
+                - generic [ref=e427]: 5.5E
+                - generic [ref=e428]: CR 0.125
+              - button "+ ADD" [ref=e429]
+            - generic [ref=e430]: Fey • Small
+          - generic [ref=e431] [cursor=pointer]:
+            - generic [ref=e432]:
+              - generic [ref=e433]:
+                - strong [ref=e434]: Goblin Underboss
+                - generic [ref=e435]: 5.5E
+                - generic [ref=e436]: CR 2
+              - button "+ ADD" [ref=e437]
+            - generic [ref=e438]: Humanoid • Small
+          - generic [ref=e439] [cursor=pointer]:
+            - generic [ref=e440]:
+              - generic [ref=e441]:
+                - strong [ref=e442]: Dust Goblin
+                - generic [ref=e443]: 5.5E
+                - generic [ref=e444]: CR 0.25
+              - button "+ ADD" [ref=e445]
+            - generic [ref=e446]: Humanoid • Small
+          - generic [ref=e447] [cursor=pointer]:
+            - generic [ref=e448]:
+              - generic [ref=e449]:
+                - strong [ref=e450]: Goblin Cursespitter
+                - generic [ref=e451]: 5.5E
+                - generic [ref=e452]: CR 1
+              - button "+ ADD" [ref=e453]
+            - generic [ref=e454]: Humanoid • Small
+          - generic [ref=e455] [cursor=pointer]:
+            - generic [ref=e456]:
+              - generic [ref=e457]:
+                - strong [ref=e458]: Goblin Hexer
+                - generic [ref=e459]: 5.5E
+                - generic [ref=e460]: CR 3
+              - button "+ ADD" [ref=e461]
+            - generic [ref=e462]: Fey • Small
+          - generic [ref=e463] [cursor=pointer]:
+            - generic [ref=e464]:
+              - generic [ref=e465]:
+                - strong [ref=e466]: Shadow Goblin Scribe
+                - generic [ref=e467]: 5.5E
+                - generic [ref=e468]: CR 1
+              - button "+ ADD" [ref=e469]
+            - generic [ref=e470]: Humanoid • Small
+          - generic [ref=e471] [cursor=pointer]:
+            - generic [ref=e472]:
+              - generic [ref=e473]:
+                - strong [ref=e474]: Goblin Boss (Variant)
+                - generic [ref=e475]: 5.5E
+                - generic [ref=e476]: CR 1
+              - button "+ ADD" [ref=e477]
+            - generic [ref=e478]: Humanoid • Small
+          - generic [ref=e479] [cursor=pointer]:
+            - generic [ref=e480]:
+              - generic [ref=e481]:
+                - strong [ref=e482]: Goblin Psi Brawler
+                - generic [ref=e483]: 5.5E
+                - generic [ref=e484]: CR 2
+              - button "+ ADD" [ref=e485]
+            - generic [ref=e486]: Aberration • Small
+          - generic [ref=e487] [cursor=pointer]:
+            - generic [ref=e488]:
+              - generic [ref=e489]:
+                - strong [ref=e490]: Goblin Psi Commander
+                - generic [ref=e491]: 5.5E
+                - generic [ref=e492]: CR 4
+              - button "+ ADD" [ref=e493]
+            - generic [ref=e494]: Aberration • Small
+    - generic [ref=e218]:
+      - generic [ref=e219]: Encounter Builder
+      - generic [ref=e220]:
+        - generic [ref=e221]: Party Selection
+        - generic [ref=e222]:
+          - generic [ref=e313]:
+            - checkbox [checked] [ref=e314]
+            - generic [ref=e315]: Luna Shadowscale (LVL 4)
+          - generic [ref=e316]:
+            - checkbox [checked] [ref=e317]
+            - generic [ref=e318]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e319]:
+            - checkbox [checked] [ref=e320]
+            - generic [ref=e321]: Chuck (LVL 4)
+          - generic [ref=e322]:
+            - checkbox [checked] [ref=e323]
+            - generic [ref=e324]: Cosimo (LVL 4)
+          - generic [ref=e325]:
+            - checkbox [checked] [ref=e326]
+            - generic [ref=e327]: Sylvia (LVL 4)
+          - generic [ref=e328]:
+            - checkbox [checked] [ref=e329]
+            - generic [ref=e330]: Cafell (LVL 4)
+          - generic [ref=e331]:
+            - checkbox [checked] [ref=e332]
+            - generic [ref=e333]: Carric Ravencrest (LVL 4)
+      - generic [ref=e244]:
+        - generic [ref=e245]: Encounter Difficulty
+        - generic [ref=e246]:
+          - generic [ref=e247]:
+            - generic [ref=e248]: "Easy:"
+            - generic [ref=e249]: 875 XP
+          - generic [ref=e250]:
+            - generic [ref=e251]: "Medium:"
+            - generic [ref=e252]: 1,750 XP
+          - generic [ref=e253]:
+            - generic [ref=e254]: "Hard:"
+            - generic [ref=e255]: 2,625 XP
+          - generic [ref=e256]:
+            - generic [ref=e257]: "Deadly:"
+            - generic [ref=e258]: 3,500 XP
+          - generic [ref=e260]: TRIVIAL
+      - generic [ref=e261]:
+        - generic [ref=e262]:
+          - generic [ref=e263]: Current Encounter
+          - button "CLEAR" [ref=e264] [cursor=pointer]
+        - generic [ref=e497] [cursor=pointer]:
+          - generic [ref=e498]:
+            - generic [ref=e499]:
+              - strong [ref=e500]: Goblin
+              - generic [ref=e501]: 5E
+              - generic [ref=e502]: ★ DDB
+              - generic [ref=e503]: 50 XP
+            - generic [ref=e504]: CR 0.25 • AC 15 • 7/7 HP
+          - generic [ref=e505]:
+            - button "–" [ref=e506]
+            - generic [ref=e507]: "1"
+            - button "+" [ref=e508]
+            - button "Standard" [ref=e509]
+            - button "×" [ref=e510]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e265] [cursor=pointer]
+    - generic [ref=e266]:
+      - generic [ref=e267]: Tactical Quick‑Ref
+      - generic [ref=e269]: Click a creature in the encounter pool to load full tactical data.
+  - generic [ref=e136]: "[10:59:13] >> CALL encounter:add_monster {\"name\":\"Goblin\",\"cr\":\"0.25\"} -> SUCCESS"

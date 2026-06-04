@@ -1,0 +1,138 @@
+- generic [ref=e27]:
+  - generic [ref=e28]:
+    - generic [ref=e29] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e30] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e31] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e32] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e33] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e34]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - generic [ref=e136]:
+    - generic [ref=e137]:
+      - generic [ref=e250]: Mini Telemetry
+      - generic [ref=e251]:
+        - generic [ref=e252]: Luna Shadowscale
+        - generic [ref=e253]: AC 16 | LVL 4
+        - generic [ref=e256]: 31/31
+      - generic [ref=e257]:
+        - generic [ref=e258]: ERROR CODE 303
+        - generic [ref=e259]: AC 14 | LVL 4
+        - generic [ref=e262]: 40/40
+      - generic [ref=e263]:
+        - generic [ref=e264]: Chuck
+        - generic [ref=e265]: AC 13 | LVL 4
+        - generic [ref=e268]: 27/29
+      - generic [ref=e269]:
+        - generic [ref=e270]: Cosimo
+        - generic [ref=e271]: AC 14 | LVL 4
+        - generic [ref=e274]: 27/27
+      - generic [ref=e275]:
+        - generic [ref=e276]: Sylvia
+        - generic [ref=e277]: AC 12 | LVL 4
+        - generic [ref=e280]: 26/26
+      - generic [ref=e281]:
+        - generic [ref=e282]: Cafell
+        - generic [ref=e283]: AC 10 | LVL 4
+        - generic [ref=e286]: 27/27
+      - generic [ref=e287]:
+        - generic [ref=e288]: Carric Ravencrest
+        - generic [ref=e289]: AC 12 | LVL 4
+        - generic [ref=e292]: 18/19
+    - generic [ref=e181]:
+      - generic [ref=e182]: Encounter Library
+      - generic [ref=e183]:
+        - generic [ref=e293]:
+          - generic [ref=e294] [cursor=pointer]:
+            - generic [ref=e295]:
+              - generic [ref=e296]:
+                - strong [ref=e297]: Test Goblin Ambush
+                - generic [ref=e298]: Medium
+              - generic [ref=e299]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e300]:
+              - button "🎵" [active] [ref=e301]
+              - button "×" [ref=e302]
+          - generic [ref=e303] [cursor=pointer]:
+            - generic [ref=e304]:
+              - generic [ref=e305]:
+                - strong [ref=e306]: Test Goblin Ambush
+                - generic [ref=e307]: Medium
+              - generic [ref=e308]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e309]:
+              - button "🎵" [ref=e310]
+              - button "×" [ref=e311]
+        - generic [ref=e184]:
+          - button "+ NEW" [ref=e185] [cursor=pointer]
+          - button "💾 SAVE" [ref=e186] [cursor=pointer]
+      - generic [ref=e187]: Monster Database
+      - generic [ref=e188]:
+        - textbox "Search D&D Beyond monsters..." [ref=e189]
+        - combobox [ref=e190]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e191] [cursor=pointer]
+    - generic [ref=e193]:
+      - generic [ref=e194]: Encounter Builder
+      - generic [ref=e195]:
+        - generic [ref=e196]: Party Selection
+        - generic [ref=e197]:
+          - generic [ref=e312]:
+            - checkbox [checked] [ref=e313]
+            - generic [ref=e314]: Luna Shadowscale (LVL 4)
+          - generic [ref=e315]:
+            - checkbox [checked] [ref=e316]
+            - generic [ref=e317]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e318]:
+            - checkbox [checked] [ref=e319]
+            - generic [ref=e320]: Chuck (LVL 4)
+          - generic [ref=e321]:
+            - checkbox [checked] [ref=e322]
+            - generic [ref=e323]: Cosimo (LVL 4)
+          - generic [ref=e324]:
+            - checkbox [checked] [ref=e325]
+            - generic [ref=e326]: Sylvia (LVL 4)
+          - generic [ref=e327]:
+            - checkbox [checked] [ref=e328]
+            - generic [ref=e329]: Cafell (LVL 4)
+          - generic [ref=e330]:
+            - checkbox [checked] [ref=e331]
+            - generic [ref=e332]: Carric Ravencrest (LVL 4)
+      - generic [ref=e219]:
+        - generic [ref=e220]: Encounter Difficulty
+        - generic [ref=e221]:
+          - generic [ref=e222]:
+            - generic [ref=e223]: "Easy:"
+            - generic [ref=e224]: –
+          - generic [ref=e225]:
+            - generic [ref=e226]: "Medium:"
+            - generic [ref=e227]: –
+          - generic [ref=e228]:
+            - generic [ref=e229]: "Hard:"
+            - generic [ref=e230]: –
+          - generic [ref=e231]:
+            - generic [ref=e232]: "Deadly:"
+            - generic [ref=e233]: –
+          - generic [ref=e235]: NO ENCOUNTER
+      - generic [ref=e237]:
+        - generic [ref=e238]: Current Encounter
+        - button "CLEAR" [ref=e239] [cursor=pointer]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e240] [cursor=pointer]
+    - generic [ref=e241]:
+      - generic [ref=e242]: Tactical Quick‑Ref
+      - generic [ref=e243]:
+        - generic [ref=e244]:
+          - strong [ref=e245]: "Actions:"
+          - text: —
+        - generic [ref=e246]:
+          - strong [ref=e247]: "Legendary:"
+          - text: —
+        - generic [ref=e248]:
+          - strong [ref=e249]: "Reactions:"
+          - text: —
+  - generic [ref=e135]: "[21:09:30] >> SND soundboard window opened"

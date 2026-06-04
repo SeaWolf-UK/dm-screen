@@ -1,0 +1,68 @@
+- generic [ref=e25]:
+  - generic [ref=e26]:
+    - generic [ref=e27] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e28] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e29] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e30] [cursor=pointer]: "F4: ADVENTURES"
+  - generic [ref=e31]: "CAMPAIGN: DEFAULT CAMPAIGN // AI: OLLAMA_LOCAL (llama3.1)"
+  - generic [ref=e77]:
+    - generic [ref=e79]: Mini Telemetry
+    - generic [ref=e80]:
+      - generic [ref=e81]: Encounter Library
+      - generic [ref=e83]:
+        - button "+ NEW" [ref=e84] [cursor=pointer]
+        - button "💾 SAVE" [ref=e85] [cursor=pointer]
+      - generic [ref=e86]: Monster Database
+      - generic [ref=e87]:
+        - textbox "Search D&D Beyond monsters..." [ref=e88]: goblin
+        - combobox [ref=e89]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [active] [ref=e90] [cursor=pointer]
+        - generic [ref=e129]: "Search failed: Cannot read properties of undefined (reading 'results')"
+    - generic [ref=e92]:
+      - generic [ref=e93]: Encounter Builder
+      - generic [ref=e94]:
+        - generic [ref=e95]: Party Selection
+        - generic [ref=e96]: Loading party...
+      - generic [ref=e97]:
+        - generic [ref=e98]: Encounter Difficulty
+        - generic [ref=e99]:
+          - generic [ref=e100]:
+            - generic [ref=e101]: "Easy:"
+            - generic [ref=e102]: –
+          - generic [ref=e103]:
+            - generic [ref=e104]: "Medium:"
+            - generic [ref=e105]: –
+          - generic [ref=e106]:
+            - generic [ref=e107]: "Hard:"
+            - generic [ref=e108]: –
+          - generic [ref=e109]:
+            - generic [ref=e110]: "Deadly:"
+            - generic [ref=e111]: –
+          - generic [ref=e113]: NO ENCOUNTER
+      - generic [ref=e115]:
+        - generic [ref=e116]: Current Encounter
+        - button "CLEAR" [ref=e117] [cursor=pointer]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e118] [cursor=pointer]
+    - generic [ref=e119]:
+      - generic [ref=e120]: Tactical Quick‑Ref
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - strong [ref=e123]: "Actions:"
+          - text: —
+        - generic [ref=e124]:
+          - strong [ref=e125]: "Legendary:"
+          - text: —
+        - generic [ref=e126]:
+          - strong [ref=e127]: "Reactions:"
+          - text: —
+  - generic [ref=e40]: "[15:36:18] >> MONSTER SEARCH ERROR: Cannot read properties of undefined (reading 'results')"

@@ -1,0 +1,11 @@
+{
+  "items": [
+    { "item": "Healing Potions", "qty": 4, "weight": 2 },
+    { "item": "Rations (days)", "qty": 20, "weight": 10 },
+    { "item": "Rope (50 ft)", "qty": 1, "weight": 5 },
+    { "item": "Thieves' Tools", "qty": 1, "weight": 1 },
+    { "item": "Torches", "qty": 10, "weight": 5 },
+    { "item": "Bedroll", "qty": 4, "weight": 12 }
+  ],
+  "currency": { "gp": 245, "sp": 112, "cp": 37 }
+}

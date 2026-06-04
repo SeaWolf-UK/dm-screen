@@ -1,0 +1,387 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (Kimi-k2.5:cloud)"
+  - generic [ref=e200]:
+    - generic [ref=e201]:
+      - generic [ref=e520]: Mini Telemetry
+      - generic [ref=e521]:
+        - generic [ref=e522]: Luna Shadowscale
+        - generic [ref=e523]: AC 16 | LVL 4
+        - generic [ref=e526]: 31/31
+      - generic [ref=e527]:
+        - generic [ref=e528]: ERROR CODE 303
+        - generic [ref=e529]: AC 14 | LVL 4
+        - generic [ref=e532]: 40/40
+      - generic [ref=e533]:
+        - generic [ref=e534]: Chuck
+        - generic [ref=e535]: AC 13 | LVL 4
+        - generic [ref=e538]: 27/29
+      - generic [ref=e539]:
+        - generic [ref=e540]: Cosimo
+        - generic [ref=e541]: AC 14 | LVL 4
+        - generic [ref=e544]: 27/27
+      - generic [ref=e545]:
+        - generic [ref=e546]: Sylvia
+        - generic [ref=e547]: AC 12 | LVL 4
+        - generic [ref=e550]: 26/26
+      - generic [ref=e551]:
+        - generic [ref=e552]: Cafell
+        - generic [ref=e553]: AC 10 | LVL 4
+        - generic [ref=e556]: 27/27
+      - generic [ref=e557]:
+        - generic [ref=e558]: Carric Ravencrest
+        - generic [ref=e559]: AC 12 | LVL 4
+        - generic [ref=e562]: 18/19
+    - generic [ref=e245]:
+      - generic [ref=e246]: Encounter Library
+      - generic [ref=e247]:
+        - generic [ref=e248]:
+          - generic [ref=e563] [cursor=pointer]:
+            - generic [ref=e564]:
+              - generic [ref=e565]:
+                - strong [ref=e566]: Test Goblin Ambush
+                - generic [ref=e567]: Medium
+              - generic [ref=e568]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e569]:
+              - button "🎵" [ref=e570]
+              - button "×" [ref=e571]
+          - generic [ref=e572] [cursor=pointer]:
+            - generic [ref=e573]:
+              - generic [ref=e574]:
+                - strong [ref=e575]: Test Goblin Ambush
+                - generic [ref=e576]: Medium
+              - generic [ref=e577]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e578]:
+              - button "🎵" [ref=e579]
+              - button "×" [ref=e580]
+          - generic [ref=e581] [cursor=pointer]:
+            - generic [ref=e582]:
+              - generic [ref=e583]:
+                - strong [ref=e584]: Forest Test
+                - generic [ref=e585]: Medium
+                - generic [ref=e586]: Forest
+              - generic [ref=e587]: "[MAN] — 3 creature(s), 7 PC(s)"
+            - generic [ref=e588]:
+              - button "🎵" [ref=e589]
+              - button "×" [ref=e590]
+          - generic [ref=e591] [cursor=pointer]:
+            - generic [ref=e592]:
+              - generic [ref=e593]:
+                - strong [ref=e594]: "Adventure: test_adventure: THE SLAUGHTERED LAMB RAID"
+                - generic [ref=e595]: Deadly
+              - generic [ref=e596]: "[ADV] — 12 creature(s), 7 PC(s)"
+            - generic [ref=e597]:
+              - button "🎵" [ref=e598]
+              - button "×" [ref=e599]
+          - generic [ref=e600] [cursor=pointer]:
+            - generic [ref=e601]:
+              - generic [ref=e602]:
+                - strong [ref=e603]: "Adventure: test_adventure: THE DRIPS GATE"
+                - generic [ref=e604]: Deadly
+              - generic [ref=e605]: "[ADV] — 7 creature(s), 7 PC(s)"
+            - generic [ref=e606]:
+              - button "🎵" [ref=e607]
+              - button "×" [ref=e608]
+          - generic [ref=e609] [cursor=pointer]:
+            - generic [ref=e610]:
+              - generic [ref=e611]:
+                - strong [ref=e612]: "Adventure: test_adventure: TRAVERSAL — OPTIONAL PATROL"
+                - generic [ref=e613]: Deadly
+              - generic [ref=e614]: "[ADV] — 4 creature(s), 7 PC(s)"
+            - generic [ref=e615]:
+              - button "🎵" [ref=e616]
+              - button "×" [ref=e617]
+          - generic [ref=e618] [cursor=pointer]:
+            - generic [ref=e619]:
+              - generic [ref=e620]:
+                - strong [ref=e621]: "Adventure: test_adventure: ENCOUNTER A — THE WATCHERS"
+                - generic [ref=e622]: Deadly
+              - generic [ref=e623]: "[ADV] — 4 creature(s), 7 PC(s)"
+            - generic [ref=e624]:
+              - button "🎵" [ref=e625]
+              - button "×" [ref=e626]
+          - generic [ref=e627] [cursor=pointer]:
+            - generic [ref=e628]:
+              - generic [ref=e629]:
+                - strong [ref=e630]: "Adventure: test_adventure: ENCOUNTER B — THE DEEP HOLLOW"
+                - generic [ref=e631]: Deadly
+              - generic [ref=e632]: "[ADV] — 2 creature(s), 7 PC(s)"
+            - generic [ref=e633]:
+              - button "🎵" [ref=e634]
+              - button "×" [ref=e635]
+          - generic [ref=e636] [cursor=pointer]:
+            - generic [ref=e637]:
+              - generic [ref=e638]:
+                - strong [ref=e639]: "Adventure: test_adventure: BRANCH TUNNEL AMBUSH"
+                - generic [ref=e640]: Deadly
+              - generic [ref=e641]: "[ADV] — 5 creature(s), 7 PC(s)"
+            - generic [ref=e642]:
+              - button "🎵" [ref=e643]
+              - button "×" [ref=e644]
+          - generic [ref=e645] [cursor=pointer]:
+            - generic [ref=e646]:
+              - generic [ref=e647]:
+                - strong [ref=e648]: "Adventure: test_adventure: THE BOUNDARY MARKERS — RITUAL COMBAT"
+                - generic [ref=e649]: Deadly
+              - generic [ref=e650]: "[ADV] — 6 creature(s), 7 PC(s)"
+            - generic [ref=e651]:
+              - button "🎵" [ref=e652]
+              - button "×" [ref=e653]
+          - generic [ref=e654] [cursor=pointer]:
+            - generic [ref=e655]:
+              - generic [ref=e656]:
+                - strong [ref=e657]: "Adventure: test_adventure: THE SLAUGHTERED LAMB RAID (2)"
+                - generic [ref=e658]: Deadly
+              - generic [ref=e659]: "[ADV] — 12 creature(s), 7 PC(s)"
+            - generic [ref=e660]:
+              - button "🎵" [ref=e661]
+              - button "×" [ref=e662]
+          - generic [ref=e663] [cursor=pointer]:
+            - generic [ref=e664]:
+              - generic [ref=e665]:
+                - strong [ref=e666]: "Adventure: test_adventure: THE DRIPS GATE (2)"
+                - generic [ref=e667]: Hard
+              - generic [ref=e668]: "[ADV] — 7 creature(s), 7 PC(s)"
+            - generic [ref=e669]:
+              - button "🎵" [ref=e670]
+              - button "×" [ref=e671]
+          - generic [ref=e672] [cursor=pointer]:
+            - generic [ref=e673]:
+              - generic [ref=e674]:
+                - strong [ref=e675]: "Adventure: test_adventure: TRAVERSAL — OPTIONAL PATROL (2)"
+                - generic [ref=e676]: Trivial
+              - generic [ref=e677]: "[ADV] — 4 creature(s), 7 PC(s)"
+            - generic [ref=e678]:
+              - button "🎵" [ref=e679]
+              - button "×" [ref=e680]
+          - generic [ref=e681] [cursor=pointer]:
+            - generic [ref=e682]:
+              - generic [ref=e683]:
+                - strong [ref=e684]: "Adventure: test_adventure: ENCOUNTER A — THE WATCHERS (2)"
+                - generic [ref=e685]: Deadly
+              - generic [ref=e686]: "[ADV] — 4 creature(s), 7 PC(s)"
+            - generic [ref=e687]:
+              - button "🎵" [ref=e688]
+              - button "×" [ref=e689]
+          - generic [ref=e690] [cursor=pointer]:
+            - generic [ref=e691]:
+              - generic [ref=e692]:
+                - strong [ref=e693]: "Adventure: test_adventure: ENCOUNTER B — THE DEEP HOLLOW (2)"
+                - generic [ref=e694]: Deadly
+              - generic [ref=e695]: "[ADV] — 2 creature(s), 7 PC(s)"
+            - generic [ref=e696]:
+              - button "🎵" [ref=e697]
+              - button "×" [ref=e698]
+          - generic [ref=e699] [cursor=pointer]:
+            - generic [ref=e700]:
+              - generic [ref=e701]:
+                - strong [ref=e702]: "Adventure: test_adventure: BRANCH TUNNEL AMBUSH (2)"
+                - generic [ref=e703]: Medium
+              - generic [ref=e704]: "[ADV] — 5 creature(s), 7 PC(s)"
+            - generic [ref=e705]:
+              - button "🎵" [ref=e706]
+              - button "×" [ref=e707]
+          - generic [ref=e708] [cursor=pointer]:
+            - generic [ref=e709]:
+              - generic [ref=e710]:
+                - strong [ref=e711]: "Adventure: test_adventure: THE BOUNDARY MARKERS — RITUAL COMBAT (2)"
+                - generic [ref=e712]: Deadly
+              - generic [ref=e713]: "[ADV] — 6 creature(s), 7 PC(s)"
+            - generic [ref=e714]:
+              - button "🎵" [ref=e715]
+              - button "×" [ref=e716]
+        - generic [ref=e403]:
+          - button "+ NEW" [ref=e404] [cursor=pointer]
+          - button "💾 SAVE" [ref=e405] [cursor=pointer]
+      - generic [ref=e406]: Monster Database
+      - generic [ref=e407]:
+        - textbox "Search D&D Beyond monsters..." [ref=e408]
+        - combobox [ref=e409]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e410] [cursor=pointer]
+        - generic [ref=e411]:
+          - generic [ref=e412]: RANDOM ENCOUNTER
+          - generic [ref=e413]:
+            - combobox [ref=e414]:
+              - option "Any Terrain" [selected]
+              - option "Arctic"
+              - option "Coastal"
+              - option "Desert"
+              - option "Forest"
+              - option "Grassland"
+              - option "Hill"
+              - option "Mountain"
+              - option "Swamp"
+              - option "Underdark"
+              - option "Underwater"
+              - option "Urban"
+            - combobox [ref=e415]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1" [selected]
+              - option "2"
+              - option "3"
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - generic [ref=e416]: "-"
+            - combobox [ref=e417]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1"
+              - option "2"
+              - option "3" [selected]
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - button "🎲 ROLL" [ref=e418] [cursor=pointer]
+    - generic [ref=e420]:
+      - generic [ref=e421]: Encounter Builder
+      - generic [ref=e422]:
+        - generic [ref=e423]: Party Selection
+        - generic [ref=e424]:
+          - generic [ref=e717]:
+            - checkbox [checked] [ref=e718]
+            - generic [ref=e719]: Luna Shadowscale (LVL 4)
+          - generic [ref=e720]:
+            - checkbox [checked] [ref=e721]
+            - generic [ref=e722]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e723]:
+            - checkbox [checked] [ref=e724]
+            - generic [ref=e725]: Chuck (LVL 4)
+          - generic [ref=e726]:
+            - checkbox [checked] [ref=e727]
+            - generic [ref=e728]: Cosimo (LVL 4)
+          - generic [ref=e729]:
+            - checkbox [checked] [ref=e730]
+            - generic [ref=e731]: Sylvia (LVL 4)
+          - generic [ref=e732]:
+            - checkbox [checked] [ref=e733]
+            - generic [ref=e734]: Cafell (LVL 4)
+          - generic [ref=e735]:
+            - checkbox [checked] [ref=e736]
+            - generic [ref=e737]: Carric Ravencrest (LVL 4)
+      - generic [ref=e446]:
+        - generic [ref=e447]: Encounter Difficulty
+        - generic [ref=e448]:
+          - generic [ref=e449]:
+            - generic [ref=e450]: "Easy:"
+            - generic [ref=e451]: 875 XP
+          - generic [ref=e452]:
+            - generic [ref=e453]: "Medium:"
+            - generic [ref=e454]: 1,750 XP
+          - generic [ref=e455]:
+            - generic [ref=e456]: "Hard:"
+            - generic [ref=e457]: 2,625 XP
+          - generic [ref=e458]:
+            - generic [ref=e459]: "Deadly:"
+            - generic [ref=e460]: 3,500 XP
+          - generic [ref=e463]: DEADLY
+      - generic [ref=e464]:
+        - generic [ref=e465]:
+          - generic [ref=e466]: Environment & Loot
+          - button "💰 LOOT" [ref=e467] [cursor=pointer]
+        - combobox [ref=e468]:
+          - option "— select terrain —" [selected]
+          - option "Arctic"
+          - option "Coastal"
+          - option "Desert"
+          - option "Dungeon"
+          - option "Forest"
+          - option "Grassland"
+          - option "Hill"
+          - option "Mountain"
+          - option "Planar"
+          - option "Swamp"
+          - option "Underdark"
+          - option "Underwater"
+          - option "Urban"
+      - generic [ref=e469]:
+        - generic [ref=e470]:
+          - generic [ref=e471]: Current Encounter
+          - button "CLEAR" [ref=e472] [cursor=pointer]
+        - generic [ref=e473]:
+          - generic [ref=e738] [cursor=pointer]:
+            - generic [ref=e739]:
+              - generic [ref=e740]:
+                - strong [ref=e741]: Black Sash Guard
+                - generic [ref=e742]: 🏠 HB
+                - generic [ref=e743]: 1000 XP
+              - generic [ref=e744]: CR 1/2 • AC 13 • 9/9 HP
+            - generic [ref=e745]:
+              - button "–" [ref=e746]
+              - generic [ref=e747]: "10"
+              - button "+" [ref=e748]
+              - button "Standard" [ref=e749]
+              - button "×" [ref=e750]
+          - generic [ref=e751] [cursor=pointer]:
+            - generic [ref=e752]:
+              - generic [ref=e753]:
+                - strong [ref=e754]: Warrant Officer Edder
+                - generic [ref=e755]: 🏠 HB
+                - generic [ref=e756]: 450 XP
+              - generic [ref=e757]: CR 2 • AC 16 • 32/32 HP
+            - generic [ref=e758]:
+              - button "–" [ref=e759]
+              - generic [ref=e760]: "1"
+              - button "+" [ref=e761]
+              - button "Standard" [ref=e762]
+              - button "×" [ref=e763]
+          - generic [ref=e764] [cursor=pointer]:
+            - generic [ref=e765]:
+              - generic [ref=e766]:
+                - strong [ref=e767]: Sorn (The Operative)
+                - generic [ref=e768]: 🏠 HB
+                - generic [ref=e769]: 700 XP
+              - generic [ref=e770]: CR 3 • AC 12 • 40/40 HP
+            - generic [ref=e771]:
+              - button "–" [ref=e772]
+              - generic [ref=e773]: "1"
+              - button "+" [ref=e774]
+              - button "Standard" [ref=e775]
+              - button "×" [ref=e776]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e513] [cursor=pointer]
+    - generic [ref=e514]:
+      - generic [ref=e515]:
+        - generic [ref=e516]: Tactical Quick‑Ref
+        - button "⛶" [ref=e517] [cursor=pointer]
+      - generic [ref=e519]: Click a creature in the encounter pool to load full tactical data.
+  - generic [ref=e136]: "[13:05:20] >> ENCOUNTER: Loaded \"Adventure: test_adventure: THE SLAUGHTERED LAMB RAID (2)\" (3 group(s), 7 PC(s))"

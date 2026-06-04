@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Launch DM Cockpit
+Comment=Tactical DM Cockpit Interface Bridge
+Exec=bash "/home/adrian/Projects/DM_Screen/Launch.sh"
+Type=Application
+Terminal=true
+Icon=utilities-terminal
+Categories=Game;RolePlaying;
+StartupNotify=true

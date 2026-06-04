@@ -1,0 +1,18 @@
+[       5ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[       5ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[      13ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[     209ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ https://unpkg.com/react-dom@18/umd/react-dom.development.js:29904
+[     242ms] [LOG] [INFO] Application loading initial data...  @ http://localhost:8765/soundboard:1261
+[     249ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[     249ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[     250ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/icon.svg:0
+[     252ms] [LOG] [INFO] Initial data loaded successfully.  @ http://localhost:8765/soundboard:1261
+[  248814ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[  248815ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[  248825ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[  249082ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ https://unpkg.com/react-dom@18/umd/react-dom.development.js:29904
+[  249112ms] [LOG] [INFO] Application loading initial data...  @ http://localhost:8765/soundboard:1261
+[  249119ms] [LOG] [INFO] Initial data loaded successfully.  @ http://localhost:8765/soundboard:1261
+[  249135ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[  249135ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[  250297ms] [LOG] [INFO] Received prompt from DM Cockpit {prompt: A Medium D&D encounter: Test Goblin Ambush. Creatu…cape with appropriate ambiance and sound effects.} @ http://localhost:8765/soundboard:1261

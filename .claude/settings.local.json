@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(git clone *)",
+      "Read(//home/adrian/.claude/**)",
+      "WebSearch",
+      "Bash(bash /home/adrian/Projects/DM_Screen/START_COCKPIT.sh)",
+      "Bash(curl -s http://localhost:8765)"
+    ]
+  }
+}

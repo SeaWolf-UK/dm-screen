@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tactical DM Cockpit</title>
+<style>
+  :root {
+    --bg:        oklch(9% 0 0);
+    --surface:   oklch(12% 0 0);
+    --fg:        oklch(96% 0 0);
+    --muted:     oklch(70% 0.02 240);
+    --border:    oklch(30% 0 0);
+    --accent:    oklch(78% 0.13 70);
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-body:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+  html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:14px; line-height:1.4; user-select:none; }
+  * { transition:none !important; box-sizing:border-box; }
+
+  /* ===== SPLASH SCREEN ===== */
+  #splash-screen {
+    position:fixed; inset:0; z-index:2000;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:40px;
+  }
+  .splash-brand { text-align:center; margin-bottom:48px; }
+  .splash-title { font-family:var(--font-display); font-weight:800; font-size:clamp(36px,5vw,72px); letter-spacing:-0.03em; color:var(--fg); }
+  .splash-sub { font-family:var(--font-body); color:var(--muted); font-size:16px; margin-top:8px; }
+
+  .splash-form {
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    width:100%; max-width:480px;
+  }
+  .splash-label {
+    font-family:var(--font-display); font-weight:700; font-size:13px;
+    color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;
+    align-self:flex-start;
+  }
+  .splash-select {
+    width:100%; padding:14px 16px;
+    background:var(--surface); color:var(--fg);
+    border:1px solid var(--border); border-radius:6px;
+    font-family:var(--font-body); font-size:16px; font-weight:700;
+    outline:none; cursor:pointer;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffb800' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 16px center;
+  }
+  .splash-select:focus { border-color:var(--accent); }
+  .splash-select option { background:var(--surface); color:var(--fg); }
+
+  .splash-btn {
+    width:100%; padding:14px;
+    background:var(--accent); color:#000;
+    border:none; border-radius:6px;
+    font-family:var(--font-display); font-weight:800; font-size:15px;
+    cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;
+  }
+  .splash-btn:active { background:#d5a000; }
+  .splash-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  .splash-footer {
+    position:absolute; bottom:16px;
+    color:var(--muted); font-size:12px; font-family:var(--font-body);
+  }
+
+  /* ===== APP SHELL ===== */
+  #app-container { width:100%; height:100%; display:none; }
+  .workspace-controller {
+    position:fixed; top:0; left:0; right:0; height:4vh; min-height:32px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface); border-bottom:2px solid var(--border);
+    z-index:1000;
+  }
+  .tab {
+    flex:0 0 auto; padding:4px 12px; margin:0 4px;
+    font-family:var(--font-display); font-weight:800; font-size:13px;
+    cursor:pointer; color:var(--muted);
+    border:1px solid var(--border); border-radius:4px; background:none;
+  }
+  .tab.active { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+
+  .context-bar {
+    position:fixed; top:4vh; left:0; right:0; height:3vh; min-height:24px;
+    background:var(--surface); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 12px;
+    font-family:var(--font-body); font-size:12px; color:var(--accent);
+    z-index:999; letter-spacing:0.05em;
+  }
+
+  /* ===== PAGES ===== */
+  .page {
+    position:absolute; top:7vh; bottom:4vh; left:0; right:0;
+    overflow:hidden; display:none;
+    background:var(--bg);
+  }
+  .page.active { display:grid; }
+  .grid-3 { grid-template-columns:30% 40% 30%; }
+  .grid-2-4-6 { grid-template-columns:20% 50% 30%; }
+  .grid-1-7 { grid-template-columns:30% 70%; }
+  .grid-1-3-6 { grid-template-columns:30% 25% 45%; }
+  .grid-2-3-4-3 { grid-template-columns:15% 22% 40% 23%; }
+  .col { overflow-y:auto; padding:8px; }
+
+  /* ===== WIDGETS ===== */
+  .header { font-family:var(--font-display); font-weight:800; font-size:15px; margin-bottom:8px; color:var(--fg); }
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:6px;
+    padding:8px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.5); position:relative;
+  }
+  .card.dead { background:#5a0000; animation:flashDead 0.8s infinite; }
+  @keyframes flashDead { 0%,100%{box-shadow:0 0 0 0 rgba(255,0,0,0.2);} 50%{box-shadow:0 0 8px 4px rgba(255,0,0,0.6);} }
+  .heavy { font-weight:800; }
+  .hp-bar { background:#300; height:20px; border-radius:3px; overflow:hidden; margin:6px 0; position:relative; }
+  .hp-fill { background:#c00; height:100%; width:0%; }
+  .hp-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:13px; }
+  .grid-square { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; margin-top:4px; }
+  .grid-square div { background:#111; color:#fff; text-align:center; padding:2px 0; font-weight:800; font-size:12px; border-radius:2px; }
+  .table { width:100%; border-collapse:collapse; font-size:13px; }
+  .table th, .table td { border:1px solid var(--border); padding:4px; }
+  .table th { background:var(--surface); font-weight:800; }
+  .button {
+    background:var(--accent); color:#000; border:none; border-radius:4px;
+    padding:6px 8px; font-weight:800; font-size:13px; cursor:pointer;
+    text-align:center; width:100%; margin-top:6px; font-family:var(--font-display);
+  }
+  .button:active { background:#d5a000; }
+  .button.secondary { background:#222; color:var(--fg); border:1px solid var(--border); }
+  .list { max-height:140px; overflow-y:auto; margin-top:6px; }
+  .list-item { display:flex; justify-content:space-between; align-items:center; padding:4px; border-bottom:1px solid var(--border); font-size:13px; }
+  .list-item button { background:#222; color:#fff; border:none; border-radius:3px; padding:2px 6px; cursor:pointer; font-size:12px; }
+  .list-item button:hover { background:#333; }
+  .meter { height:16px; background:#555; border-radius:4px; overflow:hidden; margin:6px 0; position:relative; }
+  .meter-fill { height:100%; width:0%; background:var(--accent); }
+  .meter-fill.deadly { background:#ff4000; }
+  .active-turn { border-left:4px solid var(--accent); background:#111; }
+  .active-indicator { width:6px; height:16px; background:var(--accent); animation:blink 1s steps(2) infinite; display:inline-block; vertical-align:middle; margin-right:6px; }
+  @keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
+  .input { width:100%; padding:6px; background:#111; color:var(--fg); border:1px solid var(--border); border-radius:4px; font-family:var(--font-body); font-size:13px; }
+  .input::placeholder { color:var(--muted); }
+  .condition-tag { display:inline-block; padding:2px 6px; background:#222; border:1px solid var(--accent); border-radius:3px; font-size:11px; color:var(--fg); margin-right:4px; }
+  .footer {
+    position:fixed; bottom:0; left:0; right:0; height:4vh; min-height:32px;
+    background:var(--surface); border-top:2px solid var(--border);
+    padding:4px 12px; font-family:var(--font-body); font-size:12px; color:var(--accent);
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; z-index:1000;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== SPLASH SCREEN ==================== -->
+<div id="splash-screen">
+  <div class="splash-brand">
+    <div class="splash-title">TACTICAL DM COCKPIT</div>
+    <div class="splash-sub">Select Active Campaign &amp; AI Orchestration</div>
+  </div>
+
+  <div class="splash-form">
+    <div class="splash-label">Campaign</div>
+    <select class="splash-select" id="splash-campaign">
+      <option value="" disabled selected>— choose campaign —</option>
+    </select>
+
+    <div class="splash-label">AI Provider</div>
+    <select class="splash-select" id="splash-ai-provider">
+      <option value="ollama_local">ollama_local</option>
+      <option value="ollama_cloud">ollama_cloud</option>
+      <option value="openai">openai</option>
+      <option value="claude">claude</option>
+      <option value="openrouter">openrouter</option>
+    </select>
+
+    <div class="splash-label">Endpoint URL</div>
+    <input class="splash-select" type="text" id="splash-ai-endpoint" placeholder="https://api.example.com/v1/chat/completions" style="appearance:auto; background-image:none;">
+
+    <div class="splash-label">Model Name</div>
+    <input class="splash-select" type="text" id="splash-ai-model" placeholder="e.g. llama3.2, gemma3, qwen3, mistral:7b" style="appearance:auto; background-image:none;">
+    <div id="model-hint" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+
+    <div class="splash-label">API Key <span id="key-hint" style="font-size:11px;color:var(--muted);">(required)</span></div>
+    <input class="splash-select" type="password" id="splash-ai-key" placeholder="sk-••••••••••••••••••••" style="appearance:auto; background-image:none;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+      <input type="checkbox" id="splash-remember" checked style="accent-color:var(--accent);">
+      <label for="splash-remember" style="font-size:12px;color:var(--muted);cursor:pointer;">Remember this session locally (encrypted)</label>
+    </div>
+
+    <div style="margin-top:4px;">
+      <a href="#" id="splash-clear" style="font-size:11px;color:var(--muted);text-decoration:underline;">Clear saved session</a>
+    </div>
+
+    <button class="splash-btn" id="enter-btn" disabled>[ CONFIRM &amp; INITIALIZE COCKPIT ]</button>
+  </div>
+
+  <div class="splash-footer">v2.1.0 // Tactical Interface Module</div>
+</div>
+
+<!-- ==================== APP CONTAINER ==================== -->
+<div id="app-container">
+  <!-- Workspace controller -->
+  <div class="workspace-controller">
+    <div class="tab active" data-page="1">F1: CHARACTERS</div>
+    <div class="tab" data-page="2">F2: ENCOUNTERS</div>
+    <div class="tab" data-page="3">F3: LORE</div>
+    <div class="tab" data-page="4">F4: ADVENTURES</div>
+  </div>
+  <div class="context-bar" id="context-bar">NO CAMPAIGN LOADED</div>
+
+  <!-- Page 1: CHARACTERS -->
+  <section class="page active grid-3" id="page-1">
+    <div class="col" id="p1-col-1">
+      <div class="header">DDB PARTY TELEMETRY</div>
+    </div>
+    <div class="col" id="p1-col-2">
+      <div class="header">Detail Inspection Sheet</div>
+      <div class="card" id="detail-sheet">Select a character from telemetry.</div>
+    </div>
+    <div class="col" id="p1-col-3">
+      <div class="header">Party Inventory &amp; Currency Ledger</div>
+      <div id="inventory-panel"></div>
+    </div>
+  </section>
+
+  <!-- Page 2: ENCOUNTERS -->
+  <section class="page grid-2-3-4-3" id="page-2">
+    <div class="col" id="p2-col-1"><div class="header">Mini Telemetry</div></div>
+    <div class="col" id="p2-col-encounter">
+      <div class="header">Encounter Library</div>
+      <div class="card">
+        <div id="encounter-library-list" class="list"></div>
+        <div style="display:flex;gap:4px;margin-top:8px;">
+          <button class="button secondary" id="new-encounter-btn" style="width:auto;font-size:12px;">+ NEW</button>
+          <button class="button secondary" id="save-encounter-btn" style="width:auto;font-size:12px;">💾 SAVE</button>
+        </div>
+      </div>
+    </div>
+    <div class="col" id="p2-col-2">
+      <div id="staging-mode">
+        <div class="header">Combat Builder – Staging</div>
+        <div class="card">
+          <div class="header">Party Baseline</div>
+          <div id="baseline-metrics">Avg Level: –</div>
+        </div>
+        <div class="card">
+          <div class="header">Party Selection</div>
+          <div id="party-selection" style="font-size:12px;">Loading party...</div>
+        </div>
+        <div class="card">
+          <div class="header">Compendium Search Dock</div>
+          <input class="input" id="comp-search" placeholder="Filter Bestiary by name…">
+          <div class="list" id="compendium-list"></div>
+        </div>
+        <div class="card">
+          <div class="header">Encounter Pool</div>
+          <div class="list" id="encounter-pool"></div>
+          <div class="meter"><div class="meter-fill" id="xp-meter"></div></div>
+        </div>
+        <button class="button" id="init-engagement-btn">[ INITIALIZE ENGAGEMENT MODE ]</button>
+      </div>
+      <div id="engagement-mode" style="display:none;">
+        <div class="header">Combat Manager – Engagement</div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>ROUND: <span id="round-number">1</span></div>
+            <div>
+              <button class="button secondary" id="prev-round-btn" style="width:auto;">← PREV</button>
+              <button class="button" id="next-round-btn" style="width:auto;">NEXT →</button>
+              <button class="button secondary" id="abort-encounter-btn" style="width:auto;">[ ABORT ]</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="header">Unified Initiative Ladder</div>
+          <div class="list" id="initiative-ladder"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col" id="p2-col-3">
+      <div class="header">Tactical Quick‑Ref</div>
+      <div class="card" id="quickref">
+        <div><strong>Actions:</strong> <span id="qr-actions">—</span></div>
+        <div><strong>Legendary:</strong> <span id="qr-legendary">—</span></div>
+        <div><strong>Reactions:</strong> <span id="qr-reactions">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 3: LORE -->
+  <section class="page grid-1-7" id="page-3">
+    <div class="col" id="p3-col-1">
+      <div class="header">Vault Tree Explorer</div>
+      <ul id="vault-tree" style="list-style:none;padding-left:0;"></ul>
+    </div>
+    <div class="col" id="p3-col-2">
+      <div class="header">Markdown Viewer</div>
+      <div id="markdown-view" style="font-size:13px;">
+        <h2>Welcome to the Vault</h2>
+        <p>Select a node from the tree to view campaign lore.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 4: ADVENTURES -->
+  <section class="page grid-1-3-6" id="page-4">
+    <div class="col" id="p4-col-1">
+      <div class="header">File Explorer &amp; Beat Navigator</div>
+      <input type="file" id="adventure-file-input" accept=".md" style="display:none;">
+      <button class="button" id="adventure-file-btn" style="margin-bottom:12px;">LOAD ADVENTURE FILE</button>
+      <div class="header">Beat Navigator</div>
+      <ul id="beat-list" style="list-style:none;padding-left:0;"></ul>
+    </div>
+    <div class="col" id="p4-col-2">
+      <div class="header">Truth Matrix</div>
+      <table class="table" id="truth-matrix">
+        <thead><tr><th>Players Believe</th><th>Actual Truth</th></tr></thead>
+        <tbody id="truth-matrix-body">
+        </tbody>
+      </table>
+      <div class="header" style="margin-top:12px;">Environmental Clock</div>
+      <div class="card" id="env-clock">
+        <div>Stage: <strong id="clock-stage">—</strong></div>
+        <div>DC: <strong id="clock-dc">—</strong></div>
+        <div id="clock-effect">—</div>
+      </div>
+    </div>
+    <div class="col" id="p4-col-3">
+      <div class="header">Audio &amp; Prop Director</div>
+      <div class="card">
+        <div><strong>Cue:</strong> "Cave_Drip_01.mp3" (loop)</div>
+        <div style="margin-top:6px;">
+          <button class="button secondary" style="width:auto;">PLAY</button>
+          <button class="button secondary" style="width:auto;">PAUSE</button>
+          <button class="button secondary" style="width:auto;">STOP</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <blockquote id="handout-text" style="border-left:4px solid var(--accent); padding-left:8px; margin:0;">
+          "You hear distant chanting echoing through the tunnel…"
+        </blockquote>
+        <button class="button secondary" id="copy-handout-btn" style="width:auto; margin-top:8px;">COPY TO CLIPBOARD</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="footer" id="rpc-terminal">&gt;&gt; READY</div>
+</div>
+
+<script>
+/* ============================================================
+   TACTICAL DM COCKPIT – COMPLETE FRONTEND ENGINE
+   Zero-transition, instantaneous state mutation only.
+   ============================================================ */
+
+/* ---------- STATE ---------- */
+const SESSION = { campaignId: null, campaignName: null, aiProvider: null, aiEndpoint: null, aiModel: null, aiKey: null };
+let round = 1;
+let currentInitiativeIndex = 0;
+let telemetryInterval = null;
+let encounterPool = [];
+let initiativeOrder = [];
+let bestiaryCache = [];
+let partyCache = [];
+let adventureBeats = [];
+let currentBeatIndex = -1;
+let encounters = [];
+let activeEncounterId = null;
+let currentAdventureFileName = '';
+let selectedPcIds = new Set();
+
+/* ---------- RPC LOGGER ---------- */
+const rpc = document.getElementById('rpc-terminal');
+function logRPC(msg) {
+  const ts = new Date().toISOString().slice(11,19);
+  rpc.textContent = '[' + ts + '] ' + msg;
+}
+
+/* ---------- API HELPERS ---------- */
+async function apiPost(url, body) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    console.error('apiPost error', url, res.status, errText.slice(0, 300));
+    throw new Error('HTTP ' + res.status + ' | ' + errText.slice(0, 200));
+  }
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
+}
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
+}
+
+/* ============================================================
+   BOOT LIFECYCLE – SPLASH SEQUENCE
+   ============================================================ */
+async function bootSplash() {
+  logRPC('>> BOOT: Enumerating campaigns from dndbeyond-mcp...');
+  try {
+    const campaigns = await apiPost('/api/mcp', { method: 'dndbeyond-mcp.list_campaigns', params: {}, id: 1 });
+    const sel = document.getElementById('splash-campaign');
+    sel.innerHTML = '<option value="" disabled selected>— choose campaign —</option>';
+    campaigns.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name + ' — ' + (c.playerCount || '?') + ' players — DM: ' + (c.dmUsername || '?');
+      sel.appendChild(opt);
+    });
+    logRPC('>> BOOT: ' + campaigns.length + ' campaign(s) enumerated');
+  } catch (e) {
+    logRPC('>> BOOT ERROR: ' + e.message);
+  }
+
+  // Restore saved session if present
+  try {
+    const session = await apiGet('/api/session');
+    if (session.initialized) {
+      const sel = document.getElementById('splash-campaign');
+      if (session.campaignId) {
+        sel.value = session.campaignId;
+      }
+      if (session.aiProvider) {
+        document.getElementById('splash-ai-provider').value = session.aiProvider;
+      }
+      if (session.aiEndpoint) {
+        document.getElementById('splash-ai-endpoint').value = session.aiEndpoint;
+      }
+      if (session.aiModel) {
+        document.getElementById('splash-ai-model').value = session.aiModel;
+      }
+      if (session.aiKey) {
+        document.getElementById('splash-ai-key').value = session.aiKey;
+      }
+      updateProviderDefaults();
+      validateSplash();
+      logRPC('>> BOOT: Restored saved session for ' + (session.campaignName || 'unknown'));
+    }
+  } catch (e) {
+    // No saved session — fresh boot
+  }
+
+  // Load saved encounters from localStorage
+  loadEncountersFromStorage();
+  logRPC('>> BOOT: Loaded ' + encounters.length + ' saved encounter(s) from library');
+}
+
+function isOllamaProvider() {
+  const p = document.getElementById('splash-ai-provider').value;
+  return p === 'ollama_local' || p === 'ollama_cloud';
+}
+
+function updateProviderDefaults() {
+  const provider = document.getElementById('splash-ai-provider').value;
+  const endpointInput = document.getElementById('splash-ai-endpoint');
+  const modelInput = document.getElementById('splash-ai-model');
+  const keyHint = document.getElementById('key-hint');
+  const modelHint = document.getElementById('model-hint');
+
+  if (provider.startsWith('ollama')) {
+    keyHint.textContent = '(not required for Ollama)';
+    modelHint.textContent = 'Ollama runs models locally. Make sure you have pulled this model first (ollama pull <model>). Any tag works: llama3.2, gemma3, mistral:7b, etc.';
+    if (!endpointInput.value) endpointInput.value = 'http://localhost:11434';
+    if (!modelInput.value) modelInput.value = 'llama3.2';
+  } else if (provider === 'openai') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model from OpenAI. No local download needed.';
+    if (!endpointInput.value) endpointInput.value = 'https://api.openai.com/v1/chat/completions';
+    if (!modelInput.value) modelInput.value = 'gpt-4o-mini';
+  } else if (provider === 'claude') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model from Anthropic. No local download needed.';
+    if (!endpointInput.value) endpointInput.value = 'https://api.anthropic.com/v1/messages';
+    if (!modelInput.value) modelInput.value = 'claude-3-5-sonnet-20241022';
+  } else if (provider === 'openrouter') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model aggregator. Access to many models through one endpoint.';
+    if (!endpointInput.value) endpointInput.value = 'https://openrouter.ai/api/v1/chat/completions';
+    if (!modelInput.value) modelInput.value = 'openrouter/auto';
+  }
+}
+
+function validateSplash() {
+  const campaign = document.getElementById('splash-campaign').value;
+  const provider = document.getElementById('splash-ai-provider').value;
+  const endpoint = document.getElementById('splash-ai-endpoint').value.trim();
+  const key = document.getElementById('splash-ai-key').value.trim();
+  const btn = document.getElementById('enter-btn');
+  const needsKey = !isOllamaProvider();
+  btn.disabled = !(campaign && provider && endpoint && (!needsKey || key));
+}
+
+document.getElementById('splash-campaign').addEventListener('change', validateSplash);
+document.getElementById('splash-ai-provider').addEventListener('change', () => {
+  updateProviderDefaults();
+  validateSplash();
+});
+document.getElementById('splash-ai-endpoint').addEventListener('input', validateSplash);
+document.getElementById('splash-ai-model').addEventListener('input', validateSplash);
+document.getElementById('splash-ai-key').addEventListener('input', validateSplash);
+
+document.getElementById('splash-clear').addEventListener('click', async (e) => {
+  e.preventDefault();
+  try {
+    await apiPost('/api/clear-session', {});
+    document.getElementById('splash-campaign').value = '';
+    document.getElementById('splash-ai-provider').value = 'ollama_local';
+    document.getElementById('splash-ai-endpoint').value = '';
+    document.getElementById('splash-ai-model').value = '';
+    document.getElementById('splash-ai-key').value = '';
+    validateSplash();
+    logRPC('>> SESSION: Saved credentials cleared');
+  } catch (err) {
+    logRPC('>> SESSION: Clear failed – ' + err.message);
+  }
+});
+
+document.getElementById('enter-btn').addEventListener('click', async () => {
+  const campaignId = document.getElementById('splash-campaign').value;
+  const campaignName = document.getElementById('splash-campaign').selectedOptions[0].text.split(' — ')[0];
+  const aiProvider = document.getElementById('splash-ai-provider').value;
+  const aiEndpoint = document.getElementById('splash-ai-endpoint').value.trim();
+  const aiModel = document.getElementById('splash-ai-model').value.trim();
+  const aiKey = document.getElementById('splash-ai-key').value.trim();
+
+  if (!campaignId || !aiProvider || !aiEndpoint) return;
+  if (!isOllamaProvider() && !aiKey) return;
+
+  const remember = document.getElementById('splash-remember').checked;
+  logRPC('>> INIT: Transmitting session configuration to server...');
+  try {
+    await apiPost('/api/init', { campaignId, campaignName, aiProvider, aiEndpoint, aiModel, aiKey, remember, id: 2 });
+    SESSION.campaignId = campaignId;
+    SESSION.campaignName = campaignName;
+    SESSION.aiProvider = aiProvider;
+    SESSION.aiEndpoint = aiEndpoint;
+    SESSION.aiModel = aiModel;
+    SESSION.aiKey = aiKey;
+
+    document.getElementById('splash-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+    const modelLabel = aiModel ? ' (' + aiModel + ')' : '';
+    document.getElementById('context-bar').textContent =
+      'CAMPAIGN: ' + campaignName.toUpperCase() + ' // AI: ' + aiProvider.toUpperCase() + modelLabel;
+
+    logRPC('>> INIT: Session cached. Starting telemetry sync...');
+
+    await hydrateCharacters();
+    await hydrateInventory();
+    await hydrateBestiary();
+    buildVaultTree();
+    startTelemetry();
+
+    logRPC('>> INIT: Cockpit initialized. Telemetry active.');
+  } catch (e) {
+    logRPC('>> INIT ERROR: ' + e.message);
+  }
+});
+
+/* ============================================================
+   PAGE 1: CHARACTERS WORKSPACE [F1]
+   ============================================================ */
+async function hydrateCharacters() {
+  await pollPartyTelemetry();
+}
+
+async function pollPartyTelemetry() {
+  if (!SESSION.campaignId) return;
+  try {
+    logRPC('>> TELEMETRY: dndbeyond-mcp.get_party {campaignId:' + SESSION.campaignId + '}');
+    const party = await apiPost('/api/mcp', {
+      method: 'dndbeyond-mcp.get_party',
+      params: { campaignId: SESSION.campaignId },
+      id: Date.now()
+    });
+    partyCache = party;
+    // Default all PCs to selected if none are selected yet
+    if (!selectedPcIds.size && party.length) {
+      party.forEach(pc => selectedPcIds.add(pc.id));
+    }
+    renderCharacterCards(party);
+    renderMiniTelemetry(party);
+    renderPartySelection();
+    updateBaselineMetrics(party);
+    logRPC('>> TELEMETRY: ' + party.length + ' character(s) synced');
+  } catch (e) {
+    logRPC('>> TELEMETRY ERROR: ' + e.message);
+  }
+}
+
+function startTelemetry() {
+  if (telemetryInterval) clearInterval(telemetryInterval);
+  telemetryInterval = setInterval(pollPartyTelemetry, 60000);
+}
+
+function renderCharacterCards(party) {
+  const c1 = document.getElementById('p1-col-1');
+  c1.innerHTML = '<div class="header">DDB PARTY TELEMETRY</div>';
+  party.forEach(pc => {
+    const pct = pc.maxHp > 0 ? Math.max(0, (pc.hp / pc.maxHp) * 100) : 0;
+    const spellSlots = (pc.slots || []).filter(s => s.available > 0);
+    const slotHtml = spellSlots.length
+      ? '<div class="grid-square">' + spellSlots.map(s => {
+          const rem = s.available - s.used;
+          const style = rem === 0 ? 'background:#300;color:#666;' : '';
+          return '<div title="Level ' + s.level + ' slots" style="' + style + '" class="slot-box">L' + s.level + ':' + rem + '</div>';
+        }).join('') + '</div>'
+      : '';
+    const card = document.createElement('div');
+    card.className = 'card' + (pc.hp <= 0 ? ' dead' : '');
+    card.dataset.id = pc.id;
+    card.style.cursor = 'pointer';
+    card.innerHTML =
+      '<div class="heavy">' + pc.name + ' <span style="color:var(--muted);font-size:12px;">' + pc.cls + '</span></div>' +
+      '<div class="grid-square"><div>AC ' + pc.ac + '</div><div>LVL ' + pc.level + '</div></div>' +
+      '<div class="hp-bar">' +
+        '<div class="hp-fill" style="width:' + pct + '%"></div>' +
+        '<div class="hp-text">' + pc.hp + ' / ' + pc.maxHp + ' HP</div>' +
+      '</div>' +
+      slotHtml +
+      (pc.conditions.length ? '<div style="margin-top:4px;">' + pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') + '</div>' : '');
+    card.addEventListener('click', () => showCharacterDetail(pc));
+    c1.appendChild(card);
+  });
+}
+
+function showCharacterDetail(pc) {
+  const sheet = document.getElementById('detail-sheet');
+  sheet.innerHTML =
+    '<div class="heavy">' + pc.name + '</div>' +
+    '<div><strong>Class:</strong> ' + pc.cls + '</div>' +
+    '<div><strong>Level:</strong> ' + pc.level + '</div>' +
+    '<div><strong>AC:</strong> ' + pc.ac + '</div>' +
+    '<div><strong>HP:</strong> ' + pc.hp + ' / ' + pc.maxHp + ' ' + (pc.tempHp ? '(+' + pc.tempHp + ' temp)' : '') + '</div>' +
+    '<div><strong>Saving Throws:</strong> ' + pc.saves + '</div>' +
+    '<div><strong>Conditions:</strong> ' + (pc.conditions.length ? pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') : 'None') + '</div>' +
+    '<div><strong>Equipped:</strong> ' + (pc.items.length ? pc.items.join(', ') : 'None') + '</div>' +
+    '<div><strong>Senses:</strong> Per ' + pc.senses.per + ', Ins ' + pc.senses.ins + ', Inv ' + pc.senses.inv + '</div>';
+  logRPC('>> INSPECT character "' + pc.name + '" (id:' + pc.id + ') -> SUCCESS');
+}
+
+function renderMiniTelemetry(party) {
+  const col = document.getElementById('p2-col-1');
+  col.innerHTML = '<div class="header">Mini Telemetry</div>';
+  party.forEach(pc => {
+    const pct = pc.maxHp > 0 ? Math.max(0, (pc.hp / pc.maxHp) * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'card' + (pc.hp <= 0 ? ' dead' : '');
+    card.innerHTML =
+      '<div class="heavy">' + pc.name + '</div>' +
+      '<div>AC ' + pc.ac + ' | LVL ' + pc.level + '</div>' +
+      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div><div class="hp-text">' + pc.hp + '/' + pc.maxHp + '</div></div>';
+    col.appendChild(card);
+  });
+}
+
+function updateBaselineMetrics(party) {
+  if (!party.length) {
+    document.getElementById('baseline-metrics').textContent = 'Avg Level: –';
+    return;
+  }
+  const avg = (party.reduce((s, p) => s + (p.level || 0), 0) / party.length).toFixed(1);
+  document.getElementById('baseline-metrics').textContent = 'Avg Level: ' + avg + ' | Party Size: ' + party.length;
+}
+
+async function hydrateInventory() {
+  try {
+    const data = await apiGet('/api/inventory');
+    renderInventory(data);
+    logRPC('>> INVENTORY: ledger synced from party_inventory.json');
+  } catch (e) {
+    logRPC('>> INVENTORY ERROR: ' + e.message);
+  }
+}
+
+function renderInventory(data) {
+  const panel = document.getElementById('inventory-panel');
+  const items = data.items || [];
+  const curr = data.currency || { gp: 0, sp: 0, cp: 0 };
+  let html = '<table class="table"><thead><tr><th>Item</th><th>Qty</th><th>Weight</th></tr></thead><tbody>';
+  items.forEach(i => {
+    html += '<tr><td>' + i.item + '</td><td>' + i.qty + '</td><td>' + i.weight + ' lb</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:8px;"><strong>GP:</strong> ' + curr.gp + '  <strong>SP:</strong> ' + curr.sp + '  <strong>CP:</strong> ' + curr.cp + '</div>';
+  panel.innerHTML = html;
+}
+
+/* ============================================================
+   PAGE 2: ENCOUNTERS WORKSPACE [F2]
+   ============================================================ */
+
+/* ---------- ENCOUNTER LIBRARY ---------- */
+function loadEncountersFromStorage() {
+  try {
+    const raw = localStorage.getItem('dm-cockpit-encounters');
+    if (raw) encounters = JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to load encounters from localStorage:', e);
+    encounters = [];
+  }
+}
+
+function saveEncountersToStorage() {
+  try {
+    localStorage.setItem('dm-cockpit-encounters', JSON.stringify(encounters));
+  } catch (e) {
+    console.error('Failed to save encounters to localStorage:', e);
+  }
+}
+
+function makeEncounterNameUnique(base) {
+  let name = base;
+  let n = 2;
+  while (encounters.some(e => e.name === name)) {
+    name = base + ' (' + n + ')';
+    n++;
+  }
+  return name;
+}
+
+function renderEncounterLibrary() {
+  const list = document.getElementById('encounter-library-list');
+  list.innerHTML = '';
+  if (!encounters.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px;">No saved encounters.<br>Load an adventure or build one manually.</div>';
+    return;
+  }
+  encounters.forEach(enc => {
+    const row = document.createElement('div');
+    const isActive = enc.id === activeEncounterId;
+    row.className = 'list-item' + (isActive ? ' active-turn' : '');
+    row.style.cursor = 'pointer';
+    const sourceBadge = enc.source === 'adventure' ? ' [ADV]' : ' [MAN]';
+    const monsterCount = (enc.monsters || []).reduce((s, m) => s + (m.qty || 1), 0);
+    const pcCount = (enc.selectedPcIds || []).length;
+    row.innerHTML = '<span><strong>' + enc.name + '</strong><span style="color:var(--muted);font-size:11px;">' + sourceBadge + ' — ' + monsterCount + ' creature(s), ' + pcCount + ' PC(s)</span></span><button class="rem-btn" style="background:#500;" data-id="' + enc.id + '" title="Delete">×</button>';
+    row.querySelector('span').addEventListener('click', () => selectEncounter(enc.id));
+    row.querySelector('.rem-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteEncounter(enc.id); });
+    list.appendChild(row);
+  });
+}
+
+function selectEncounter(id) {
+  const enc = encounters.find(e => e.id === id);
+  if (!enc) return;
+  activeEncounterId = id;
+  encounterPool = (enc.monsters || []).map(m => ({ ...m })); // deep copy
+  // Restore selected PCs; default to all if not saved
+  if (enc.selectedPcIds && enc.selectedPcIds.length) {
+    selectedPcIds = new Set(enc.selectedPcIds);
+  } else {
+    selectedPcIds = new Set(partyCache.map(pc => pc.id));
+  }
+  renderEncounterPool();
+  updateXPMeter();
+  renderPartySelection();
+  renderEncounterLibrary();
+  logRPC('>> ENCOUNTER: Loaded "' + enc.name + '" (' + encounterPool.length + ' group(s), ' + selectedPcIds.size + ' PC(s))');
+}
+
+function createNewEncounter() {
+  const name = prompt('Name for new encounter:', 'New Encounter');
+  if (!name || !name.trim()) return;
+  const uniqueName = makeEncounterNameUnique(name.trim());
+  const id = 'enc_' + Date.now();
+  selectedPcIds = new Set(partyCache.map(pc => pc.id));
+  encounters.push({ id, name: uniqueName, source: 'manual', monsters: [], selectedPcIds: Array.from(selectedPcIds), createdAt: Date.now() });
+  activeEncounterId = id;
+  encounterPool = [];
+  renderEncounterPool();
+  updateXPMeter();
+  renderPartySelection();
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+  logRPC('>> ENCOUNTER: Created new "' + uniqueName + '"');
+}
+
+function saveCurrentEncounter() {
+  if (!encounterPool.length) {
+    alert('Encounter pool is empty. Add monsters before saving.');
+    return;
+  }
+  const existing = encounters.find(e => e.id === activeEncounterId);
+  const defaultName = existing ? existing.name : 'Manual Encounter';
+  const name = prompt('Save encounter as:', defaultName);
+  if (!name || !name.trim()) return;
+  const uniqueName = makeEncounterNameUnique(name.trim());
+  const pcIds = Array.from(selectedPcIds);
+  if (existing) {
+    existing.name = uniqueName;
+    existing.monsters = encounterPool.map(m => ({ ...m }));
+    existing.selectedPcIds = pcIds;
+    existing.source = 'manual';
+    logRPC('>> ENCOUNTER: Updated "' + uniqueName + '"');
+  } else {
+    const id = 'enc_' + Date.now();
+    encounters.push({ id, name: uniqueName, source: 'manual', monsters: encounterPool.map(m => ({ ...m })), selectedPcIds: pcIds, createdAt: Date.now() });
+    activeEncounterId = id;
+    logRPC('>> ENCOUNTER: Saved new "' + uniqueName + '"');
+  }
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+}
+
+function deleteEncounter(id) {
+  if (!confirm('Delete this encounter?')) return;
+  encounters = encounters.filter(e => e.id !== id);
+  if (activeEncounterId === id) {
+    activeEncounterId = null;
+    encounterPool = [];
+    selectedPcIds = new Set();
+    renderEncounterPool();
+    updateXPMeter();
+    renderPartySelection();
+  }
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+  logRPC('>> ENCOUNTER: Deleted encounter');
+}
+
+/* ---------- STAT BLOCK EXTRACTION ---------- */
+function extractStatBlocksFromMarkdown(text) {
+  const blocks = [];
+  // Split into chunks by headers. Look for ## or ### followed by text,
+  // then check if the next lines contain stat block keywords.
+  const lines = text.split(/\n/);
+  let currentBlock = null;
+  let currentName = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headerMatch = line.match(/^#{1,3}\s+(.+)$/);
+    if (headerMatch) {
+      // Save previous block if it looks like a stat block
+      if (currentBlock && currentName && /armor\s*class|hit\s*points|challenge|cr\s+\d/i.test(currentBlock)) {
+        blocks.push({ name: currentName, text: currentBlock.trim() });
+      }
+      currentName = headerMatch[1].trim();
+      currentBlock = line + '\n';
+    } else if (currentBlock !== null) {
+      currentBlock += line + '\n';
+    }
+  }
+  // Don't forget the last one
+  if (currentBlock && currentName && /armor\s*class|hit\s*points|challenge|cr\s+\d/i.test(currentBlock)) {
+    blocks.push({ name: currentName, text: currentBlock.trim() });
+  }
+  return blocks;
+}
+
+function findStatBlockForMonster(name, statBlocks) {
+  const lowerName = name.toLowerCase();
+  // Exact match first
+  let block = statBlocks.find(b => b.name.toLowerCase() === lowerName);
+  if (block) return block.text;
+  // Partial match
+  block = statBlocks.find(b => lowerName.includes(b.name.toLowerCase()) || b.name.toLowerCase().includes(lowerName));
+  if (block) return block.text;
+  return null;
+}
+
+/* Event listeners */
+document.getElementById('new-encounter-btn').addEventListener('click', createNewEncounter);
+document.getElementById('save-encounter-btn').addEventListener('click', saveCurrentEncounter);
+
+/* ---------- PARTY SELECTION ---------- */
+function renderPartySelection() {
+  const container = document.getElementById('party-selection');
+  if (!partyCache.length) {
+    container.innerHTML = 'No party data yet.';
+    return;
+  }
+  container.innerHTML = '';
+  partyCache.forEach(pc => {
+    const label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.gap = '6px';
+    label.style.marginBottom = '4px';
+    label.style.cursor = 'pointer';
+    const checked = selectedPcIds.has(pc.id) ? 'checked' : '';
+    label.innerHTML = '<input type="checkbox" ' + checked + ' data-pc-id="' + pc.id + '" style="accent-color:var(--accent);"> <span>' + pc.name + ' (LVL ' + pc.level + ')</span>';
+    label.querySelector('input').addEventListener('change', (e) => {
+      if (e.target.checked) selectedPcIds.add(pc.id);
+      else selectedPcIds.delete(pc.id);
+      logRPC('>> PARTY: ' + (e.target.checked ? 'Included' : 'Excluded') + ' ' + pc.name);
+    });
+    container.appendChild(label);
+  });
+}
+
+function getSelectedPartyMembers() {
+  return partyCache.filter(pc => selectedPcIds.has(pc.id));
+}
+
+async function hydrateBestiary() {
+  try {
+    bestiaryCache = await apiGet('/api/bestiary');
+    renderCompendium(bestiaryCache);
+    logRPC('>> BESTIARY: ' + bestiaryCache.length + ' entries indexed');
+  } catch (e) {
+    logRPC('>> BESTIARY ERROR: ' + e.message);
+  }
+}
+
+function renderCompendium(list) {
+  const container = document.getElementById('compendium-list');
+  container.innerHTML = '';
+  list.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'list-item';
+    row.innerHTML = '<span><strong>' + entry.name + '</strong> (CR ' + entry.cr + ')</span><button class="add-monster-btn" data-name="' + entry.name + '" data-cr="' + entry.cr + '">[+ ADD]</button>';
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.add-monster-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = '...';
+      await addMonsterToPool(btn.dataset.name, btn.dataset.cr);
+      btn.disabled = false;
+      btn.textContent = '[+ ADD]';
+    });
+  });
+}
+
+function filterCompendium() {
+  const query = document.getElementById('comp-search').value.trim();
+  if (!query) {
+    renderCompendium(bestiaryCache);
+    return;
+  }
+  const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const filtered = bestiaryCache.filter(e => regex.test(e.name) || regex.test(e.cr));
+  renderCompendium(filtered);
+}
+
+document.getElementById('comp-search').addEventListener('input', filterCompendium);
+
+async function addMonsterToPool(name, cr) {
+  const id = 'm' + Date.now() + Math.floor(Math.random() * 1000);
+  const entry = { id, name, cr, qty: 1, variant: 'Standard', hp: null, ac: 10 };
+
+  // Try to resolve from D&D Beyond
+  try {
+    const result = await apiPost('/api/resolve-monster', { name, statBlock: null });
+    if (result && result.found) {
+      entry.hp = result.hp || 20;
+      entry.maxHp = result.maxHp || entry.hp;
+      entry.ac = result.ac || 10;
+      entry.source = result.source;
+      entry.actions = result.actions || '';
+      entry.legendary = result.legendary || '';
+      entry.reactions = result.reactions || '';
+      entry.special = result.special || '';
+      logRPC('>> MONSTER: Resolved "' + name + '" from D&D Beyond (HP ' + entry.hp + ', AC ' + entry.ac + ')');
+    }
+  } catch (e) {
+    // Silently fail — user can still use the monster with default stats
+  }
+
+  encounterPool.push(entry);
+  renderEncounterPool();
+  updateXPMeter();
+  logRPC('>> CALL encounter:add_monster {"name":"' + name + '","cr":"' + cr + '"} -> SUCCESS');
+}
+
+function renderEncounterPool() {
+  const pool = document.getElementById('encounter-pool');
+  pool.innerHTML = '';
+  encounterPool.forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'list-item';
+    row.dataset.idx = idx;
+    const hpText = m.maxHp ? m.hp + '/' + m.maxHp + ' HP' : (m.variant === 'Minion' ? '1 HP' : '—');
+    const acText = m.ac ? 'AC ' + m.ac : '';
+    const sourceBadge = m.source === 'ddb' ? ' ★' : (m.source === 'homebrew' ? ' 🏠' : '');
+    row.innerHTML =
+      '<span><strong>' + m.name + '</strong>' + sourceBadge + ' <span style="color:var(--muted);font-size:11px;">(CR ' + m.cr + (acText ? ', ' + acText : '') + ', ' + hpText + ')</span></span>' +
+      '<div>' +
+        '<button class="dec-btn">–</button>' +
+        '<span class="qty">' + m.qty + '</span>' +
+        '<button class="inc-btn">+</button>' +
+        '<button class="var-btn">' + m.variant + '</button>' +
+        '<button class="rem-btn" style="background:#500;margin-left:4px;">×</button>' +
+      '</div>';
+    pool.appendChild(row);
+  });
+
+  pool.querySelectorAll('.dec-btn').forEach(btn => btn.addEventListener('click', () => adjustQty(btn, -1)));
+  pool.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', () => adjustQty(btn, 1)));
+  pool.querySelectorAll('.var-btn').forEach(btn => btn.addEventListener('click', () => cycleVariant(btn)));
+  pool.querySelectorAll('.rem-btn').forEach(btn => btn.addEventListener('click', () => removeMonster(btn)));
+}
+
+function adjustQty(btn, delta) {
+  const row = btn.closest('.list-item');
+  const idx = Number(row.dataset.idx);
+  if (encounterPool[idx]) {
+    encounterPool[idx].qty = Math.max(1, encounterPool[idx].qty + delta);
+    row.querySelector('.qty').textContent = encounterPool[idx].qty;
+    updateXPMeter();
+  }
+}
+
+function cycleVariant(btn) {
+  const variants = ['Standard', 'Minion', 'Boss'];
+  const row = btn.closest('.list-item');
+  const idx = Number(row.dataset.idx);
+  if (!encounterPool[idx]) return;
+  const cur = encounterPool[idx].variant;
+  const next = variants[(variants.indexOf(cur) + 1) % 3];
+  encounterPool[idx].variant = next;
+  btn.textContent = next;
+  if (next === 'Minion') encounterPool[idx].hp = 1;
+  logRPC('>> CALL encounter:set_variant {"idx":' + idx + ',"variant":"' + next + '"} -> SUCCESS');
+}
+
+function removeMonster(btn) {
+  const row = btn.closest('.list-item');
+  const idx = Number(row.dataset.idx);
+  encounterPool.splice(idx, 1);
+  renderEncounterPool();
+  updateXPMeter();
+}
+
+function updateXPMeter() {
+  const totalUnits = encounterPool.reduce((s, m) => s + m.qty, 0);
+  const pct = Math.min(totalUnits * 10, 100);
+  const meter = document.getElementById('xp-meter');
+  meter.style.width = pct + '%';
+  meter.classList.toggle('deadly', pct >= 75);
+}
+
+function initiateEngagement() {
+  if (!encounterPool.length) return;
+  document.getElementById('staging-mode').style.display = 'none';
+  document.getElementById('engagement-mode').style.display = 'block';
+  round = 1;
+  currentInitiativeIndex = 0;
+  document.getElementById('round-number').textContent = round;
+
+  initiativeOrder = [];
+  const selectedParty = partyCache.filter(pc => selectedPcIds.has(pc.id));
+  if (selectedParty.length) {
+    selectedParty.forEach(pc => initiativeOrder.push({ type: 'pc', id: pc.id, name: pc.name, ac: pc.ac, hp: pc.hp, maxHp: pc.maxHp }));
+  }
+  encounterPool.forEach(m => {
+    for (let i = 0; i < m.qty; i++) {
+      const npcAc = m.ac || 10;
+      const npcHp = m.maxHp || (m.variant === 'Minion' ? 1 : 20);
+      initiativeOrder.push({ type: 'npc', id: m.id + '_' + i, name: m.name + (m.qty > 1 ? ' #' + (i+1) : ''), ac: npcAc, hp: npcHp, maxHp: npcHp, variant: m.variant, actions: m.actions || '', legendary: m.legendary || '', reactions: m.reactions || '', special: m.special || '' });
+    }
+  });
+  initiativeOrder.sort((a, b) => b.ac - a.ac);
+
+  renderInitiativeLadder();
+  activateTurn(0);
+  logRPC('>> CALL encounter:start {pcs:' + selectedParty.length + ', npcs:' + (initiativeOrder.length - selectedParty.length) + '} -> SUCCESS');
+}
+
+function abortEncounter() {
+  document.getElementById('engagement-mode').style.display = 'none';
+  document.getElementById('staging-mode').style.display = 'block';
+  round = 1;
+  currentInitiativeIndex = 0;
+  document.getElementById('round-number').textContent = round;
+  initiativeOrder = [];
+  document.getElementById('initiative-ladder').innerHTML = '';
+  logRPC('>> CALL encounter:abort {} -> SUCCESS');
+}
+
+function nextTurn() {
+  if (!initiativeOrder.length) return;
+  const oldIdx = currentInitiativeIndex;
+  currentInitiativeIndex = (currentInitiativeIndex + 1) % initiativeOrder.length;
+  if (currentInitiativeIndex === 0) {
+    round++;
+    document.getElementById('round-number').textContent = round;
+  }
+  activateTurn(currentInitiativeIndex, oldIdx);
+  logRPC('>> CALL turn:advance {"turn":' + currentInitiativeIndex + ',"round":' + round + '} -> SUCCESS');
+}
+
+function prevTurn() {
+  if (!initiativeOrder.length) return;
+  const oldIdx = currentInitiativeIndex;
+  currentInitiativeIndex = (currentInitiativeIndex - 1 + initiativeOrder.length) % initiativeOrder.length;
+  if (oldIdx === 0) {
+    round = Math.max(1, round - 1);
+    document.getElementById('round-number').textContent = round;
+  }
+  activateTurn(currentInitiativeIndex, oldIdx);
+  logRPC('>> CALL turn:reverse {"turn":' + currentInitiativeIndex + ',"round":' + round + '} -> SUCCESS');
+}
+
+function renderInitiativeLadder() {
+  const list = document.getElementById('initiative-ladder');
+  list.innerHTML = '';
+  initiativeOrder.forEach((ent, i) => {
+    const row = document.createElement('div');
+    row.className = 'list-item' + (i === currentInitiativeIndex ? ' active-turn' : '');
+    row.dataset.idx = i;
+    const hpText = ent.type === 'pc' ? ent.hp + '/' + ent.maxHp : '' + ent.hp;
+    row.innerHTML =
+      '<div><span class="active-indicator" style="display:' + (i === currentInitiativeIndex ? 'inline-block' : 'none') + '"></span><strong>' + ent.name + '</strong> (AC ' + ent.ac + ') HP: <span class="hp-val">' + hpText + '</span></div>' +
+      '<div><button class="hp-down">-5</button><button class="hp-up">+5</button></div>';
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('.hp-down').forEach(btn => btn.addEventListener('click', () => modHp(btn, -5)));
+  list.querySelectorAll('.hp-up').forEach(btn => btn.addEventListener('click', () => modHp(btn, 5)));
+}
+
+function activateTurn(newIdx, oldIdx) {
+  const list = document.getElementById('initiative-ladder');
+  const rows = list.querySelectorAll('.list-item');
+  if (oldIdx !== undefined && rows[oldIdx]) {
+    rows[oldIdx].classList.remove('active-turn');
+    const oldInd = rows[oldIdx].querySelector('.active-indicator');
+    if (oldInd) oldInd.style.display = 'none';
+  }
+  if (rows[newIdx]) {
+    rows[newIdx].classList.add('active-turn');
+    const newInd = rows[newIdx].querySelector('.active-indicator');
+    if (newInd) newInd.style.display = 'inline-block';
+  }
+  const active = initiativeOrder[newIdx];
+  if (active) loadQuickRef(active.name.replace(/ #\d+$/, ''));
+}
+
+function modHp(btn, delta) {
+  const row = btn.closest('.list-item');
+  const idx = Number(row.dataset.idx);
+  const span = row.querySelector('.hp-val');
+  const text = span.textContent;
+  const parts = text.split('/');
+  const cur = Number(parts[0]);
+  const max = parts[1] ? Number(parts[1]) : Number(parts[0]);
+  const next = Math.max(0, Math.min(max, cur + delta));
+  span.textContent = parts[1] ? next + '/' + max : '' + next;
+  if (next === 0) row.classList.add('dead');
+  else row.classList.remove('dead');
+  if (initiativeOrder[idx]) initiativeOrder[idx].hp = next;
+  logRPC('>> CALL hp:modify {"idx":' + idx + ',"delta":' + delta + ',"newHp":' + next + '} -> SUCCESS');
+}
+
+async function loadQuickRef(creatureName) {
+  try {
+    const bestiaryEntry = bestiaryCache.find(b => b.name.toLowerCase() === creatureName.toLowerCase());
+    if (!bestiaryEntry) {
+      document.getElementById('qr-actions').textContent = '—';
+      document.getElementById('qr-legendary').textContent = '—';
+      document.getElementById('qr-reactions').textContent = '—';
+      return;
+    }
+    const file = await apiPost('/api/mcp', { method: 'filesystem-mcp.read_file', params: { path: bestiaryEntry.path }, id: Date.now() });
+    const content = file.content;
+    let actions = '—', legendary = '—', reactions = '—';
+    const actionMatch = content.match(/## Actions([\s\S]*?)(?=## |\n## |$)/i);
+    if (actionMatch) actions = actionMatch[1].trim().replace(/\n/g, '; ').slice(0, 200) + (actionMatch[1].length > 200 ? '…' : '');
+    const legMatch = content.match(/## Legendary Actions([\s\S]*?)(?=## |\n## |$)/i);
+    if (legMatch) legendary = legMatch[1].trim().replace(/\n/g, '; ').slice(0, 200) + (legMatch[1].length > 200 ? '…' : '');
+    const reactMatch = content.match(/## Reactions([\s\S]*?)(?=## |\n## |$)/i);
+    if (reactMatch) reactions = reactMatch[1].trim().replace(/\n/g, '; ').slice(0, 200) + (reactMatch[1].length > 200 ? '…' : '');
+
+    document.getElementById('qr-actions').textContent = actions;
+    document.getElementById('qr-legendary').textContent = legendary;
+    document.getElementById('qr-reactions').textContent = reactions;
+    logRPC('>> QUICKREF loaded "' + creatureName + '" from ' + bestiaryEntry.path);
+  } catch (e) {
+    logRPC('>> QUICKREF ERROR: ' + e.message);
+  }
+}
+
+document.getElementById('init-engagement-btn').addEventListener('click', initiateEngagement);
+document.getElementById('abort-encounter-btn').addEventListener('click', abortEncounter);
+document.getElementById('next-round-btn').addEventListener('click', nextTurn);
+document.getElementById('prev-round-btn').addEventListener('click', prevTurn);
+
+/* ============================================================
+   PAGE 3: LORE WORKSPACE [F3]
+   ============================================================ */
+async function buildVaultTree() {
+  const tree = document.getElementById('vault-tree');
+  tree.innerHTML = '';
+  const dirs = ['Bestiary', 'Factions', 'NPCs', 'Locations'];
+  for (const dir of dirs) {
+    try {
+      const items = await apiGet('/api/vault?dir=' + encodeURIComponent(dir));
+      if (!items.length) continue;
+      const li = document.createElement('li');
+      li.style.marginBottom = '8px';
+      li.innerHTML = '<div class="heavy" style="margin-bottom:4px;">/' + dir + '</div>';
+      const sub = document.createElement('ul');
+      sub.style.listStyle = 'none';
+      sub.style.paddingLeft = '12px';
+      items.forEach(item => {
+        if (item.isDirectory) return;
+        const btn = document.createElement('button');
+        btn.className = 'button secondary';
+        btn.textContent = item.name;
+        btn.style.marginBottom = '4px';
+        btn.style.textAlign = 'left';
+        btn.addEventListener('click', () => loadLore(item.path));
+        const sli = document.createElement('li');
+        sli.appendChild(btn);
+        sub.appendChild(sli);
+      });
+      li.appendChild(sub);
+      tree.appendChild(li);
+    } catch (e) {
+      // Skip missing directories
+    }
+  }
+  logRPC('>> VAULT: tree built');
+}
+
+async function loadLore(filePath) {
+  try {
+    const file = await apiPost('/api/mcp', { method: 'filesystem-mcp.read_file', params: { path: filePath }, id: Date.now() });
+    const view = document.getElementById('markdown-view');
+    const escaped = file.content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    view.innerHTML = '<pre style="white-space:pre-wrap;font-family:var(--font-body);font-size:13px;">' + escaped + '</pre>';
+    logRPC('>> CALL filesystem-mcp:read_file {"path":"' + filePath + '"} -> SUCCESS');
+  } catch (e) {
+    logRPC('>> LORE ERROR: ' + e.message);
+  }
+}
+
+/* ============================================================
+   PAGE 4: ADVENTURES WORKSPACE [F4]
+   ============================================================ */
+document.getElementById('adventure-file-btn').addEventListener('click', () => {
+  document.getElementById('adventure-file-input').click();
+});
+
+document.getElementById('adventure-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) { logRPC('>> ADVENTURE ERROR: No file selected'); return; }
+  if (!file.name.endsWith('.md')) {
+    logRPC('>> ADVENTURE ERROR: Only .md files supported (got "' + file.name + '")');
+    return;
+  }
+  currentAdventureFileName = file.name.replace(/\.md$/i, '');
+  const text = await file.text();
+  logRPC('>> ADVENTURE: Loaded "' + file.name + '" (' + text.length + ' chars, ' + text.split(/\n+/).length + ' lines)');
+  if (!text.trim()) {
+    logRPC('>> ADVENTURE ERROR: File is empty');
+    return;
+  }
+
+  // Extract any homebrew stat blocks before sending to AI
+  const extractedStatBlocks = extractStatBlocksFromMarkdown(text);
+  logRPC('>> ADVENTURE: Extracted ' + extractedStatBlocks.length + ' homebrew stat block(s) from file');
+
+  logRPC('>> ADVENTURE: Bestiary cache has ' + bestiaryCache.length + ' entries for CR matching');
+  try {
+    logRPC('>> ADVENTURE: Calling /api/parse-adventure...');
+    const monsters = await apiPost('/api/parse-adventure', { narrative: text });
+    logRPC('>> AI PARSE: ' + monsters.length + ' creature group(s) extracted');
+    if (!monsters.length) {
+      logRPC('>> AI PARSE WARNING: Zero creatures found. The AI may have returned an empty array.');
+    } else {
+      logRPC('>> AI PARSE: First extract = ' + JSON.stringify(monsters[0]));
+    }
+    ingestEncounterFromAI(monsters, currentAdventureFileName, extractedStatBlocks);
+    buildBeatsFromText(text);
+    populateAdventureMetadata();
+  } catch (err) {
+    logRPC('>> AI PARSE ERROR: ' + err.message);
+    console.error('Adventure parse full error:', err);
+  }
+});
+
+async function ingestEncounterFromAI(monsters, adventureName, statBlocks) {
+  let added = 0;
+  let resolved = 0;
+  let homebrew = 0;
+  encounterPool = []; // clear for fresh import
+
+  for (const m of monsters) {
+    const name = m.name || 'Unknown';
+    const qty = Number(m.qty) || 1;
+    const variant = m.type || 'Standard';
+
+    // Try to find a homebrew stat block in the adventure text
+    const statBlock = statBlocks ? findStatBlockForMonster(name, statBlocks) : null;
+
+    // Resolve via server (D&D Beyond first, then stat block fallback)
+    let resolvedStats = null;
+    try {
+      const result = await apiPost('/api/resolve-monster', { name, statBlock });
+      resolvedStats = result;
+    } catch (err) {
+      console.warn('Failed to resolve monster', name, err.message);
+    }
+
+    for (let i = 0; i < qty; i++) {
+      const id = 'ai_' + Date.now() + '_' + i + '_' + Math.floor(Math.random()*1000);
+      const entry = { id, name, qty: 1, variant };
+
+      if (resolvedStats && resolvedStats.found) {
+        entry.hp = resolvedStats.hp || (variant === 'Minion' ? 1 : 20);
+        entry.maxHp = resolvedStats.maxHp || entry.hp;
+        entry.ac = resolvedStats.ac || 10;
+        entry.cr = resolvedStats.cr || '?';
+        entry.source = resolvedStats.source;
+        entry.actions = resolvedStats.actions || '';
+        entry.legendary = resolvedStats.legendary || '';
+        entry.reactions = resolvedStats.reactions || '';
+        entry.special = resolvedStats.special || '';
+        resolved++;
+        if (resolvedStats.source === 'homebrew') homebrew++;
+      } else {
+        entry.hp = variant === 'Minion' ? 1 : null;
+        entry.ac = 10;
+        entry.cr = '?';
+      }
+
+      encounterPool.push(entry);
+      added++;
+    }
+  }
+
+  renderEncounterPool();
+  updateXPMeter();
+  logRPC('>> ENCOUNTER INGEST: ' + monsters.length + ' group(s) → ' + added + ' token(s), ' + resolved + ' resolved (' + homebrew + ' homebrew)');
+
+  // Auto-save as an encounter
+  if (encounterPool.length) {
+    const baseName = adventureName ? 'Adventure: ' + adventureName : 'Imported Encounter';
+    const encName = makeEncounterNameUnique(baseName);
+    const id = 'enc_' + Date.now();
+    selectedPcIds = new Set(partyCache.map(pc => pc.id));
+    encounters.push({ id, name: encName, source: 'adventure', monsters: encounterPool.map(m => ({ ...m })), selectedPcIds: Array.from(selectedPcIds), createdAt: Date.now() });
+    activeEncounterId = id;
+    renderEncounterLibrary();
+    saveEncountersToStorage();
+    logRPC('>> ENCOUNTER: Auto-saved as "' + encName + '"');
+  }
+}
+
+function buildBeatsFromText(text) {
+  // Split by headers (##) or paragraphs, keep meaningful content
+  const allLines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+  logRPC('>> BEATS: Total lines in file: ' + allLines.length);
+
+  // Prefer lines that look like scene headers or substantial paragraphs
+  let lines = allLines.filter(l => l.length > 15 && !l.startsWith('#') && !l.startsWith('- ') && !l.startsWith('* '));
+  if (lines.length === 0) {
+    // Fallback: use any non-empty line if aggressive filter wiped everything
+    lines = allLines.filter(l => l.length > 5);
+  }
+  logRPC('>> BEATS: Filtered to ' + lines.length + ' candidate line(s)');
+
+  adventureBeats = lines.slice(0, 12).map((line, i) => ({
+    title: 'Beat ' + (i + 1),
+    text: line.slice(0, 80) + (line.length > 80 ? '…' : ''),
+    truth: [
+      { believe: 'The situation appears calm.', actual: 'Danger lurks unseen.' },
+      { believe: 'Allies are trustworthy.', actual: 'A traitor hides among them.' }
+    ],
+    clock: { stage: 1, of: 5, dc: 12 + i, effect: 'Environmental hazard intensifies.' }
+  }));
+
+  const list = document.getElementById('beat-list');
+  list.innerHTML = '';
+  if (adventureBeats.length === 0) {
+    logRPC('>> BEATS WARNING: No beats generated. The adventure file may be empty or not contain readable paragraphs.');
+    const li = document.createElement('li');
+    li.textContent = 'No beats found in file.';
+    list.appendChild(li);
+    return;
+  }
+
+  logRPC('>> BEATS: Built ' + adventureBeats.length + ' beat(s)');
+  adventureBeats.forEach((b, i) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'button secondary';
+    btn.textContent = b.title + ': ' + b.text;
+    btn.addEventListener('click', () => loadBeat(i));
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+}
+
+function populateAdventureMetadata() {
+  const tbody = document.getElementById('truth-matrix-body');
+  tbody.innerHTML =
+    '<tr data-beat="0"><td>"The bridge is stable."</td><td>It collapses at 50% load.</td></tr>' +
+    '<tr data-beat="0"><td>"The chest is empty."</td><td>Cursed relic inside.</td></tr>' +
+    '<tr data-beat="1" style="display:none;"><td>"The guard is asleep."</td><td>He is feigning sleep as a trap.</td></tr>' +
+    '<tr data-beat="1" style="display:none;"><td>"The door is unlocked."</td><td>It is magically sealed.</td></tr>';
+  document.getElementById('clock-stage').textContent = '1 / 5';
+  document.getElementById('clock-dc').textContent = '12';
+  document.getElementById('clock-effect').textContent = 'Effect: A faint mist begins to fill the chamber.';
+}
+
+function loadBeat(idx) {
+  currentBeatIndex = idx;
+  const beat = adventureBeats[idx];
+  if (!beat) return;
+  const rows = document.querySelectorAll('#truth-matrix-body tr');
+  rows.forEach(r => {
+    const rIdx = Number(r.dataset.beat);
+    r.style.display = (rIdx === idx) ? '' : 'none';
+  });
+  if (beat.clock) {
+    document.getElementById('clock-stage').textContent = beat.clock.stage + ' / ' + beat.clock.of;
+    document.getElementById('clock-dc').textContent = beat.clock.dc;
+    document.getElementById('clock-effect').textContent = 'Effect: ' + beat.clock.effect;
+  }
+  logRPC('>> SWITCH beat ' + idx + ' -> SUCCESS');
+}
+
+document.getElementById('copy-handout-btn').addEventListener('click', async () => {
+  const text = document.getElementById('handout-text').textContent.trim();
+  try {
+    await navigator.clipboard.writeText(text);
+    logRPC('>> CLIPBOARD: handout copied to OS buffer');
+  } catch (e) {
+    logRPC('>> CLIPBOARD ERROR: ' + e.message);
+  }
+});
+
+/* ============================================================
+   PAGE SWITCHING
+   ============================================================ */
+const tabs = document.querySelectorAll('.tab');
+const pages = {
+  1: document.getElementById('page-1'),
+  2: document.getElementById('page-2'),
+  3: document.getElementById('page-3'),
+  4: document.getElementById('page-4')
+};
+
+function activatePage(n) {
+  Object.values(pages).forEach(p => p.classList.remove('active'));
+  if (pages[n]) pages[n].classList.add('active');
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.page == n));
+  if (n === 2) {
+    renderEncounterLibrary();
+    renderPartySelection();
+  }
+  logRPC('>> SWITCH workspace ' + n);
+}
+
+tabs.forEach(t => t.addEventListener('click', () => activatePage(t.dataset.page)));
+document.addEventListener('keydown', e => {
+  if (e.key === 'F1') activatePage(1);
+  else if (e.key === 'F2') activatePage(2);
+  else if (e.key === 'F3') activatePage(3);
+  else if (e.key === 'F4') activatePage(4);
+});
+
+/* ============================================================
+   DOMContentLoaded
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  bootSplash();
+});
+
+/* All UI updates are instantaneous — zero animation, zero easing. */
+</script>
+</body>
+</html>

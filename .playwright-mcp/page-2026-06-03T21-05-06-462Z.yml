@@ -1,0 +1,18 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - generic [ref=e137]:
+    - generic [ref=e138]: TTRPG SOUNDBOARD
+    - generic [ref=e139]:
+      - text: The soundboard opens in its own window to prevent audio memory from competing with the DM Cockpit renderer.
+      - text: Once opened, click the
+      - strong [ref=e140]: 🎵
+      - text: button on any encounter in the Encounter Builder (F2) to auto-generate a soundscape.
+    - button "[ OPEN SOUNDBOARD IN NEW WINDOW ]" [ref=e141] [cursor=pointer]
+    - generic [ref=e142]: Not connected
+  - generic [ref=e143]: "[21:05:05] >> SWITCH workspace 5"

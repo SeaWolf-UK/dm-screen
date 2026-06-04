@@ -1,0 +1,12 @@
+[      14ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/index.css:0
+[      15ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/index.tsx:0
+[      17ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[      18ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[      31ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[     336ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ https://unpkg.com/react-dom@18/umd/react-dom.development.js:29904
+[     388ms] [WARNING] You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/ @ https://unpkg.com/@babel/standalone/babel.min.js:2
+[    1334ms] [LOG] [INFO] Application loading initial data...  @ :1554
+[    1340ms] [LOG] [INFO] Initial data loaded successfully.  @ :1554
+[    1355ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/manifest.json:0
+[    1355ms] [ERROR] Manifest fetch from http://localhost:8765/manifest.json failed, code 404 @ http://localhost:8765/soundboard:0
+[    1355ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8765/icon.svg:0

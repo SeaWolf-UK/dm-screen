@@ -1,0 +1,98 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e38]: DDB PARTY TELEMETRY
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: Luna Shadowscale Rogue 4
+        - generic [ref=e41]:
+          - generic [ref=e42]: AC 16
+          - generic [ref=e43]: LVL 4
+        - generic [ref=e46]: 31 / 31 HP
+      - generic [ref=e47] [cursor=pointer]:
+        - generic [ref=e48]: ERROR CODE 303 Fighter 4
+        - generic [ref=e49]:
+          - generic [ref=e50]: AC 14
+          - generic [ref=e51]: LVL 4
+        - generic [ref=e54]: 40 / 40 HP
+      - generic [ref=e55] [cursor=pointer]:
+        - generic [ref=e56]: Chuck Barbarian 4
+        - generic [ref=e57]:
+          - generic [ref=e58]: AC 13
+          - generic [ref=e59]: LVL 4
+        - generic [ref=e62]: 27 / 29 HP
+      - generic [ref=e63] [cursor=pointer]:
+        - generic [ref=e64]: Cosimo Rogue 4
+        - generic [ref=e65]:
+          - generic [ref=e66]: AC 14
+          - generic [ref=e67]: LVL 4
+        - generic [ref=e70]: 27 / 27 HP
+      - generic [ref=e71] [cursor=pointer]:
+        - generic [ref=e72]: Sylvia Wizard 4
+        - generic [ref=e73]:
+          - generic [ref=e74]: AC 12
+          - generic [ref=e75]: LVL 4
+        - generic [ref=e78]: 26 / 26 HP
+      - generic [ref=e79] [cursor=pointer]:
+        - generic [ref=e80]: Cafell Cleric 4
+        - generic [ref=e81]:
+          - generic [ref=e82]: AC 10
+          - generic [ref=e83]: LVL 4
+        - generic [ref=e86]: 27 / 27 HP
+      - generic [ref=e87] [cursor=pointer]:
+        - generic [ref=e88]: Carric Ravencrest Monk 4
+        - generic [ref=e89]:
+          - generic [ref=e90]: AC 12
+          - generic [ref=e91]: LVL 4
+        - generic [ref=e94]: 18 / 19 HP
+    - generic [ref=e95]:
+      - generic [ref=e96]: Detail Inspection Sheet
+      - generic [ref=e97]: Select a character from telemetry.
+    - generic [ref=e98]:
+      - generic [ref=e99]: Party Inventory & Currency Ledger
+      - generic [ref=e100]:
+        - table [ref=e101]:
+          - rowgroup [ref=e102]:
+            - row "Item Qty Weight" [ref=e103]:
+              - columnheader "Item" [ref=e104]
+              - columnheader "Qty" [ref=e105]
+              - columnheader "Weight" [ref=e106]
+          - rowgroup [ref=e107]:
+            - row "Healing Potions 4 2 lb" [ref=e108]:
+              - cell "Healing Potions" [ref=e109]
+              - cell "4" [ref=e110]
+              - cell "2 lb" [ref=e111]
+            - row "Rations (days) 20 10 lb" [ref=e112]:
+              - cell "Rations (days)" [ref=e113]
+              - cell "20" [ref=e114]
+              - cell "10 lb" [ref=e115]
+            - row "Rope (50 ft) 1 5 lb" [ref=e116]:
+              - cell "Rope (50 ft)" [ref=e117]
+              - cell "1" [ref=e118]
+              - cell "5 lb" [ref=e119]
+            - row "Thieves' Tools 1 1 lb" [ref=e120]:
+              - cell "Thieves' Tools" [ref=e121]
+              - cell "1" [ref=e122]
+              - cell "1 lb" [ref=e123]
+            - row "Torches 10 5 lb" [ref=e124]:
+              - cell "Torches" [ref=e125]
+              - cell "10" [ref=e126]
+              - cell "5 lb" [ref=e127]
+            - row "Bedroll 4 12 lb" [ref=e128]:
+              - cell "Bedroll" [ref=e129]
+              - cell "4" [ref=e130]
+              - cell "12 lb" [ref=e131]
+        - generic [ref=e132]:
+          - strong [ref=e133]: "GP:"
+          - text: "245"
+          - strong [ref=e134]: "SP:"
+          - text: "112"
+          - strong [ref=e135]: "CP:"
+          - text: "37"
+  - generic [ref=e136]: "[20:33:15] >> VAULT: tree built"

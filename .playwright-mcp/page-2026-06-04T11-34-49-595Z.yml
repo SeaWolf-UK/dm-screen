@@ -1,0 +1,338 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (llama3.2)"
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e444]: Mini Telemetry
+      - generic [ref=e445]:
+        - generic [ref=e446]: Luna Shadowscale
+        - generic [ref=e447]: AC 16 | LVL 4
+        - generic [ref=e450]: 31/31
+      - generic [ref=e451]:
+        - generic [ref=e452]: ERROR CODE 303
+        - generic [ref=e453]: AC 14 | LVL 4
+        - generic [ref=e456]: 40/40
+      - generic [ref=e457]:
+        - generic [ref=e458]: Chuck
+        - generic [ref=e459]: AC 13 | LVL 4
+        - generic [ref=e462]: 27/29
+      - generic [ref=e463]:
+        - generic [ref=e464]: Cosimo
+        - generic [ref=e465]: AC 14 | LVL 4
+        - generic [ref=e468]: 27/27
+      - generic [ref=e469]:
+        - generic [ref=e470]: Sylvia
+        - generic [ref=e471]: AC 12 | LVL 4
+        - generic [ref=e474]: 26/26
+      - generic [ref=e475]:
+        - generic [ref=e476]: Cafell
+        - generic [ref=e477]: AC 10 | LVL 4
+        - generic [ref=e480]: 27/27
+      - generic [ref=e481]:
+        - generic [ref=e482]: Carric Ravencrest
+        - generic [ref=e483]: AC 12 | LVL 4
+        - generic [ref=e486]: 18/19
+    - generic [ref=e81]:
+      - generic [ref=e82]: Encounter Library
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e416] [cursor=pointer]:
+            - generic [ref=e417]:
+              - generic [ref=e418]:
+                - strong [ref=e419]: Test Goblin Ambush
+                - generic [ref=e420]: Medium
+              - generic [ref=e421]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e422]:
+              - button "🎵" [ref=e423]
+              - button "×" [ref=e424]
+          - generic [ref=e425] [cursor=pointer]:
+            - generic [ref=e426]:
+              - generic [ref=e427]:
+                - strong [ref=e428]: Test Goblin Ambush
+                - generic [ref=e429]: Medium
+              - generic [ref=e430]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e431]:
+              - button "🎵" [ref=e432]
+              - button "×" [ref=e433]
+          - generic [ref=e434] [cursor=pointer]:
+            - generic [ref=e435]:
+              - generic [ref=e436]:
+                - strong [ref=e437]: Forest Test
+                - generic [ref=e438]: Medium
+                - generic [ref=e439]: Forest
+              - generic [ref=e440]: "[MAN] — 3 creature(s), 7 PC(s)"
+            - generic [ref=e441]:
+              - button "🎵" [ref=e442]
+              - button "×" [ref=e443]
+        - generic [ref=e103]:
+          - button "+ NEW" [ref=e104] [cursor=pointer]
+          - button "💾 SAVE" [ref=e105] [cursor=pointer]
+      - generic [ref=e106]: Monster Database
+      - generic [ref=e107]:
+        - textbox "Search D&D Beyond monsters..." [ref=e108]
+        - combobox [ref=e109]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e110] [cursor=pointer]
+        - generic [ref=e111]:
+          - generic [ref=e112]: RANDOM ENCOUNTER
+          - generic [ref=e113]:
+            - combobox [ref=e114]:
+              - option "Any Terrain"
+              - option "Arctic"
+              - option "Coastal"
+              - option "Desert"
+              - option "Forest" [selected]
+              - option "Grassland"
+              - option "Hill"
+              - option "Mountain"
+              - option "Swamp"
+              - option "Underdark"
+              - option "Underwater"
+              - option "Urban"
+            - combobox [ref=e115]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1" [selected]
+              - option "2"
+              - option "3"
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - generic [ref=e116]: "-"
+            - combobox [ref=e117]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1"
+              - option "2"
+              - option "3" [selected]
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - button "🎲 ROLL" [ref=e118] [cursor=pointer]
+    - generic [ref=e120]:
+      - generic [ref=e121]: Encounter Builder
+      - generic [ref=e122]:
+        - generic [ref=e123]: Party Selection
+        - generic [ref=e124]:
+          - generic [ref=e487]:
+            - checkbox [checked] [ref=e488]
+            - generic [ref=e489]: Luna Shadowscale (LVL 4)
+          - generic [ref=e490]:
+            - checkbox [checked] [ref=e491]
+            - generic [ref=e492]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e493]:
+            - checkbox [checked] [ref=e494]
+            - generic [ref=e495]: Chuck (LVL 4)
+          - generic [ref=e496]:
+            - checkbox [checked] [ref=e497]
+            - generic [ref=e498]: Cosimo (LVL 4)
+          - generic [ref=e499]:
+            - checkbox [checked] [ref=e500]
+            - generic [ref=e501]: Sylvia (LVL 4)
+          - generic [ref=e502]:
+            - checkbox [checked] [ref=e503]
+            - generic [ref=e504]: Cafell (LVL 4)
+          - generic [ref=e505]:
+            - checkbox [checked] [ref=e506]
+            - generic [ref=e507]: Carric Ravencrest (LVL 4)
+      - generic [ref=e146]:
+        - generic [ref=e147]: Encounter Difficulty
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - generic [ref=e150]: "Easy:"
+            - generic [ref=e151]: 875 XP
+          - generic [ref=e152]:
+            - generic [ref=e153]: "Medium:"
+            - generic [ref=e154]: 1,750 XP
+          - generic [ref=e155]:
+            - generic [ref=e156]: "Hard:"
+            - generic [ref=e157]: 2,625 XP
+          - generic [ref=e158]:
+            - generic [ref=e159]: "Deadly:"
+            - generic [ref=e160]: 3,500 XP
+          - generic [ref=e162]: MEDIUM
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - generic [ref=e165]: Environment & Loot
+          - button "💰 LOOT" [ref=e166] [cursor=pointer]
+        - combobox [ref=e167]:
+          - option "— select terrain —"
+          - option "Arctic"
+          - option "Coastal"
+          - option "Desert"
+          - option "Dungeon"
+          - option "Forest" [selected]
+          - option "Grassland"
+          - option "Hill"
+          - option "Mountain"
+          - option "Planar"
+          - option "Swamp"
+          - option "Underdark"
+          - option "Underwater"
+          - option "Urban"
+      - generic [ref=e168]:
+        - generic [ref=e169]:
+          - generic [ref=e170]: Current Encounter
+          - button "CLEAR" [ref=e171] [cursor=pointer]
+        - generic [ref=e309]:
+          - generic [ref=e508] [cursor=pointer]:
+            - generic [ref=e509]:
+              - generic [ref=e510]:
+                - strong [ref=e511]: Giant Boar
+                - generic [ref=e512]: 5E
+                - generic [ref=e513]: ★ DDB
+                - generic [ref=e514]: 450 XP
+              - generic [ref=e515]: CR 2 • AC 12 • 42/42 HP
+            - generic [ref=e516]:
+              - button "–" [ref=e517]
+              - generic [ref=e518]: "1"
+              - button "+" [ref=e519]
+              - button "Standard" [ref=e520]
+              - button "×" [ref=e521]
+          - generic [ref=e522] [cursor=pointer]:
+            - generic [ref=e523]:
+              - generic [ref=e524]:
+                - strong [ref=e525]: Ogre
+                - generic [ref=e526]: 5.5E
+                - generic [ref=e527]: ★ DDB
+                - generic [ref=e528]: 450 XP
+              - generic [ref=e529]: CR 2 • AC 11 • 68/68 HP
+            - generic [ref=e530]:
+              - button "–" [ref=e531]
+              - generic [ref=e532]: "1"
+              - button "+" [ref=e533]
+              - button "Standard" [ref=e534]
+              - button "×" [ref=e535]
+          - generic [ref=e536] [cursor=pointer]:
+            - generic [ref=e537]:
+              - generic [ref=e538]:
+                - strong [ref=e539]: Giant Spider
+                - generic [ref=e540]: 5E
+                - generic [ref=e541]: ★ DDB
+                - generic [ref=e542]: 200 XP
+              - generic [ref=e543]: CR 1 • AC 14 • 26/26 HP
+            - generic [ref=e544]:
+              - button "–" [ref=e545]
+              - generic [ref=e546]: "1"
+              - button "+" [ref=e547]
+              - button "Standard" [ref=e548]
+              - button "×" [ref=e549]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e172] [cursor=pointer]
+    - generic [ref=e173]:
+      - generic [ref=e174]:
+        - generic [ref=e175]: Tactical Quick‑Ref
+        - button "⛶" [ref=e176] [cursor=pointer]
+      - generic [ref=e550]:
+        - img "Giant Boar" [ref=e551]
+        - generic [ref=e552]: Giant Boar
+        - generic [ref=e553]: Large Beast Unaligned
+        - generic [ref=e554]:
+          - strong [ref=e555]: AC
+          - text: 12 (natural armor) |
+          - strong [ref=e556]: HP
+          - text: 42 (5d10 + 15) |
+          - strong [ref=e557]: CR
+          - text: 2 (450 XP)
+          - button "⚔️ DMG" [ref=e559] [cursor=pointer]
+        - generic [ref=e560]:
+          - strong [ref=e561]: Speed
+          - text: 40 ft.
+        - generic [ref=e562]:
+          - generic [ref=e563]:
+            - strong [ref=e564]: STR
+            - text: 17 (+3)
+          - generic [ref=e565]:
+            - strong [ref=e566]: DEX
+            - text: 10 (+0)
+          - generic [ref=e567]:
+            - strong [ref=e568]: CON
+            - text: 16 (+3)
+          - generic [ref=e569]:
+            - strong [ref=e570]: INT
+            - text: 2 (-4)
+          - generic [ref=e571]:
+            - strong [ref=e572]: WIS
+            - text: 7 (-2)
+          - generic [ref=e573]:
+            - strong [ref=e574]: CHA
+            - text: 5 (-3)
+        - generic [ref=e575]:
+          - strong [ref=e576]: Senses
+          - text: passive Perception 8
+          - strong [ref=e577]: Languages
+          - text: "--"
+        - generic [ref=e578]:
+          - generic [ref=e579]: SPECIAL TRAITS
+          - generic [ref=e580]:
+            - paragraph [ref=e581]:
+              - emphasis [ref=e582]:
+                - strong [ref=e583]: Charge.
+              - text: If the boar moves at least 20 feet straight toward a target and then hits it with a tusk attack on the same turn, the target takes an extra 7 (2d6) slashing damage. If the target is a creature, it must succeed on a DC 13 Strength saving throw or be knocked
+              - link "prone" [ref=e584] [cursor=pointer]:
+                - /url: /sources/dnd/free-rules/rules-glossary#ProneCondition
+              - text: .
+              - button "⚔️ DMG" [ref=e586] [cursor=pointer]
+            - paragraph [ref=e587]:
+              - emphasis [ref=e588]:
+                - strong [ref=e589]: Relentless (Recharges after a Short or Long Rest).
+              - text: If the boar takes 10 damage or less that would reduce it to 0 hit points, it is reduced to 1 hit point instead.
+            - button "⚔️ DMG" [ref=e591] [cursor=pointer]
+          - button "⚔️ DMG" [ref=e593] [cursor=pointer]
+        - generic [ref=e594]:
+          - generic [ref=e595]: ACTIONS
+          - generic [ref=e596]:
+            - paragraph [ref=e597]:
+              - emphasis [ref=e598]:
+                - strong [ref=e599]: Tusk.
+                - text: "Melee Weapon Attack:"
+              - text: +5 to hit, reach 5 ft., one target.
+              - emphasis [ref=e600]: "Hit:"
+              - text: 10 (2d6 + 3) slashing damage.
+              - generic [ref=e601]:
+                - button "🎲 ATK" [ref=e602] [cursor=pointer]
+                - button "⚔️ DMG" [ref=e603] [cursor=pointer]
+            - generic [ref=e604]:
+              - button "🎲 ATK" [ref=e605] [cursor=pointer]
+              - button "⚔️ DMG" [ref=e606] [cursor=pointer]
+          - generic [ref=e607]:
+            - button "🎲 ATK" [ref=e608] [cursor=pointer]
+            - button "⚔️ DMG" [ref=e609] [cursor=pointer]
+  - generic [ref=e179]: "[11:34:47] >> QUICKREF loaded \"Giant Boar\" from encounter pool"

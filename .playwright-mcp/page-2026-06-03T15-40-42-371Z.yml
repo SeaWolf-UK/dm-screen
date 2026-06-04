@@ -1,0 +1,74 @@
+- generic [ref=e24]:
+  - generic [ref=e25]:
+    - generic [ref=e26] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e27] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e28] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e29] [cursor=pointer]: "F4: ADVENTURES"
+  - generic [ref=e30]: "CAMPAIGN: DEFAULT CAMPAIGN // AI: OLLAMA_LOCAL (llama3.1)"
+  - generic [ref=e76]:
+    - generic [ref=e78]: Mini Telemetry
+    - generic [ref=e79]:
+      - generic [ref=e80]: Encounter Library
+      - generic [ref=e82]:
+        - button "+ NEW" [ref=e83] [cursor=pointer]
+        - button "💾 SAVE" [ref=e84] [cursor=pointer]
+      - generic [ref=e85]: Monster Database
+      - generic [ref=e86]:
+        - textbox "Search D&D Beyond monsters..." [ref=e87]: goblin
+        - combobox [ref=e88]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e89] [cursor=pointer]
+        - generic [ref=e128] [cursor=pointer]:
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - strong [ref=e131]: Goblin Commoner
+              - text: CR 0
+            - button "+ ADD" [ref=e132]
+          - generic [ref=e133]: Humanoid • Small
+    - generic [ref=e91]:
+      - generic [ref=e92]: Encounter Builder
+      - generic [ref=e93]:
+        - generic [ref=e94]: Party Selection
+        - generic [ref=e95]: Loading party...
+      - generic [ref=e96]:
+        - generic [ref=e97]: Encounter Difficulty
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e100]: "Easy:"
+            - generic [ref=e101]: –
+          - generic [ref=e102]:
+            - generic [ref=e103]: "Medium:"
+            - generic [ref=e104]: –
+          - generic [ref=e105]:
+            - generic [ref=e106]: "Hard:"
+            - generic [ref=e107]: –
+          - generic [ref=e108]:
+            - generic [ref=e109]: "Deadly:"
+            - generic [ref=e110]: –
+          - generic [ref=e112]: NO ENCOUNTER
+      - generic [ref=e114]:
+        - generic [ref=e115]: Current Encounter
+        - button "CLEAR" [ref=e116] [cursor=pointer]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e117] [cursor=pointer]
+    - generic [ref=e118]:
+      - generic [ref=e119]: Tactical Quick‑Ref
+      - generic [ref=e120]:
+        - generic [ref=e121]:
+          - strong [ref=e122]: "Actions:"
+          - text: —
+        - generic [ref=e123]:
+          - strong [ref=e124]: "Legendary:"
+          - text: —
+        - generic [ref=e125]:
+          - strong [ref=e126]: "Reactions:"
+          - text: —
+  - generic [ref=e39]: "[15:40:17] >> SWITCH workspace 2"

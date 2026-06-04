@@ -1,0 +1,264 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (llama3.2)"
+  - generic [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e352]: Mini Telemetry
+      - generic [ref=e353]:
+        - generic [ref=e354]: Luna Shadowscale
+        - generic [ref=e355]: AC 16 | LVL 4
+        - generic [ref=e358]: 31/31
+      - generic [ref=e359]:
+        - generic [ref=e360]: ERROR CODE 303
+        - generic [ref=e361]: AC 14 | LVL 4
+        - generic [ref=e364]: 40/40
+      - generic [ref=e365]:
+        - generic [ref=e366]: Chuck
+        - generic [ref=e367]: AC 13 | LVL 4
+        - generic [ref=e370]: 27/29
+      - generic [ref=e371]:
+        - generic [ref=e372]: Cosimo
+        - generic [ref=e373]: AC 14 | LVL 4
+        - generic [ref=e376]: 27/27
+      - generic [ref=e377]:
+        - generic [ref=e378]: Sylvia
+        - generic [ref=e379]: AC 12 | LVL 4
+        - generic [ref=e382]: 26/26
+      - generic [ref=e383]:
+        - generic [ref=e384]: Cafell
+        - generic [ref=e385]: AC 10 | LVL 4
+        - generic [ref=e388]: 27/27
+      - generic [ref=e389]:
+        - generic [ref=e390]: Carric Ravencrest
+        - generic [ref=e391]: AC 12 | LVL 4
+        - generic [ref=e394]: 18/19
+    - generic [ref=e81]:
+      - generic [ref=e82]: Encounter Library
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e416] [cursor=pointer]:
+            - generic [ref=e417]:
+              - generic [ref=e418]:
+                - strong [ref=e419]: Test Goblin Ambush
+                - generic [ref=e420]: Medium
+              - generic [ref=e421]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e422]:
+              - button "🎵" [ref=e423]
+              - button "×" [ref=e424]
+          - generic [ref=e425] [cursor=pointer]:
+            - generic [ref=e426]:
+              - generic [ref=e427]:
+                - strong [ref=e428]: Test Goblin Ambush
+                - generic [ref=e429]: Medium
+              - generic [ref=e430]: "[MAN] — 3 creature(s), 0 PC(s)"
+            - generic [ref=e431]:
+              - button "🎵" [ref=e432]
+              - button "×" [ref=e433]
+          - generic [ref=e434] [cursor=pointer]:
+            - generic [ref=e435]:
+              - generic [ref=e436]:
+                - strong [ref=e437]: Forest Test
+                - generic [ref=e438]: Medium
+                - generic [ref=e439]: Forest
+              - generic [ref=e440]: "[MAN] — 3 creature(s), 7 PC(s)"
+            - generic [ref=e441]:
+              - button "🎵" [ref=e442]
+              - button "×" [ref=e443]
+        - generic [ref=e103]:
+          - button "+ NEW" [ref=e104] [cursor=pointer]
+          - button "💾 SAVE" [active] [ref=e105] [cursor=pointer]
+      - generic [ref=e106]: Monster Database
+      - generic [ref=e107]:
+        - textbox "Search D&D Beyond monsters..." [ref=e108]
+        - combobox [ref=e109]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e110] [cursor=pointer]
+        - generic [ref=e111]:
+          - generic [ref=e112]: RANDOM ENCOUNTER
+          - generic [ref=e113]:
+            - combobox [ref=e114]:
+              - option "Any Terrain"
+              - option "Arctic"
+              - option "Coastal"
+              - option "Desert"
+              - option "Forest" [selected]
+              - option "Grassland"
+              - option "Hill"
+              - option "Mountain"
+              - option "Swamp"
+              - option "Underdark"
+              - option "Underwater"
+              - option "Urban"
+            - combobox [ref=e115]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1" [selected]
+              - option "2"
+              - option "3"
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - generic [ref=e116]: "-"
+            - combobox [ref=e117]:
+              - option "CR 0"
+              - option "1/8"
+              - option "1/4"
+              - option "1/2"
+              - option "1"
+              - option "2"
+              - option "3" [selected]
+              - option "4"
+              - option "5"
+              - option "6"
+              - option "7"
+              - option "8"
+              - option "9"
+              - option "10"
+              - option "11"
+              - option "12"
+              - option "13"
+              - option "14"
+              - option "15"
+              - option "16"
+            - button "🎲 ROLL" [ref=e118] [cursor=pointer]
+    - generic [ref=e120]:
+      - generic [ref=e121]: Encounter Builder
+      - generic [ref=e122]:
+        - generic [ref=e123]: Party Selection
+        - generic [ref=e124]:
+          - generic [ref=e395]:
+            - checkbox [checked] [ref=e396]
+            - generic [ref=e397]: Luna Shadowscale (LVL 4)
+          - generic [ref=e398]:
+            - checkbox [checked] [ref=e399]
+            - generic [ref=e400]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e401]:
+            - checkbox [checked] [ref=e402]
+            - generic [ref=e403]: Chuck (LVL 4)
+          - generic [ref=e404]:
+            - checkbox [checked] [ref=e405]
+            - generic [ref=e406]: Cosimo (LVL 4)
+          - generic [ref=e407]:
+            - checkbox [checked] [ref=e408]
+            - generic [ref=e409]: Sylvia (LVL 4)
+          - generic [ref=e410]:
+            - checkbox [checked] [ref=e411]
+            - generic [ref=e412]: Cafell (LVL 4)
+          - generic [ref=e413]:
+            - checkbox [checked] [ref=e414]
+            - generic [ref=e415]: Carric Ravencrest (LVL 4)
+      - generic [ref=e146]:
+        - generic [ref=e147]: Encounter Difficulty
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - generic [ref=e150]: "Easy:"
+            - generic [ref=e151]: 875 XP
+          - generic [ref=e152]:
+            - generic [ref=e153]: "Medium:"
+            - generic [ref=e154]: 1,750 XP
+          - generic [ref=e155]:
+            - generic [ref=e156]: "Hard:"
+            - generic [ref=e157]: 2,625 XP
+          - generic [ref=e158]:
+            - generic [ref=e159]: "Deadly:"
+            - generic [ref=e160]: 3,500 XP
+          - generic [ref=e162]: MEDIUM
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - generic [ref=e165]: Environment & Loot
+          - button "💰 LOOT" [ref=e166] [cursor=pointer]
+        - combobox [ref=e167]:
+          - option "— select terrain —"
+          - option "Arctic"
+          - option "Coastal"
+          - option "Desert"
+          - option "Dungeon"
+          - option "Forest" [selected]
+          - option "Grassland"
+          - option "Hill"
+          - option "Mountain"
+          - option "Planar"
+          - option "Swamp"
+          - option "Underdark"
+          - option "Underwater"
+          - option "Urban"
+      - generic [ref=e168]:
+        - generic [ref=e169]:
+          - generic [ref=e170]: Current Encounter
+          - button "CLEAR" [ref=e171] [cursor=pointer]
+        - generic [ref=e309]:
+          - generic [ref=e310] [cursor=pointer]:
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - strong [ref=e313]: Giant Boar
+                - generic [ref=e314]: 5E
+                - generic [ref=e315]: ★ DDB
+                - generic [ref=e316]: 450 XP
+              - generic [ref=e317]: CR 2 • AC 12 • 42/42 HP
+            - generic [ref=e318]:
+              - button "–" [ref=e319]
+              - generic [ref=e320]: "1"
+              - button "+" [ref=e321]
+              - button "Standard" [ref=e322]
+              - button "×" [ref=e323]
+          - generic [ref=e324] [cursor=pointer]:
+            - generic [ref=e325]:
+              - generic [ref=e326]:
+                - strong [ref=e327]: Ogre
+                - generic [ref=e328]: 5.5E
+                - generic [ref=e329]: ★ DDB
+                - generic [ref=e330]: 450 XP
+              - generic [ref=e331]: CR 2 • AC 11 • 68/68 HP
+            - generic [ref=e332]:
+              - button "–" [ref=e333]
+              - generic [ref=e334]: "1"
+              - button "+" [ref=e335]
+              - button "Standard" [ref=e336]
+              - button "×" [ref=e337]
+          - generic [ref=e338] [cursor=pointer]:
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - strong [ref=e341]: Giant Spider
+                - generic [ref=e342]: 5E
+                - generic [ref=e343]: ★ DDB
+                - generic [ref=e344]: 200 XP
+              - generic [ref=e345]: CR 1 • AC 14 • 26/26 HP
+            - generic [ref=e346]:
+              - button "–" [ref=e347]
+              - generic [ref=e348]: "1"
+              - button "+" [ref=e349]
+              - button "Standard" [ref=e350]
+              - button "×" [ref=e351]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e172] [cursor=pointer]
+    - generic [ref=e173]:
+      - generic [ref=e174]:
+        - generic [ref=e175]: Tactical Quick‑Ref
+        - button "⛶" [ref=e176] [cursor=pointer]
+      - generic [ref=e178]: Click a creature in the encounter pool to load full tactical data.
+  - generic [ref=e179]: "[11:34:20] >> ENCOUNTER: Saved new \"Forest Test\" (Medium)"

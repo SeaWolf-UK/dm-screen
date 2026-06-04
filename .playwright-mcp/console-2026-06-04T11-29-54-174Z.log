@@ -1,0 +1,3 @@
+[      16ms] TypeError: Cannot read properties of null (reading 'addEventListener')
+    at http://localhost:8765/?nocache=5:1817:49
+[      19ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8765/?nocache=5:0

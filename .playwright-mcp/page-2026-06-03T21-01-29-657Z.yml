@@ -1,0 +1,101 @@
+- generic [ref=e27]:
+  - generic [ref=e28]:
+    - generic [ref=e29] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e30] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e31] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e32] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e33] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e34]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - iframe [ref=e137]:
+    - generic [ref=f3e3]:
+      - banner [ref=f3e4]:
+        - heading "TTRPG Soundboard" [level=1] [ref=f3e5]
+        - generic [ref=f3e6]:
+          - button "Clear All" [ref=f3e7] [cursor=pointer]
+          - button "Stop All" [disabled] [ref=f3e8]:
+            - img [ref=f3e9]
+            - generic [ref=f3e11]: Stop All
+          - generic [ref=f3e12]:
+            - generic [ref=f3e13]: Master Volume
+            - slider [ref=f3e14]: "1"
+          - button "Fade Out All" [disabled] [ref=f3e15]
+          - button "Save Scene" [ref=f3e16] [cursor=pointer]:
+            - img [ref=f3e17]
+            - generic [ref=f3e19]: Save Scene
+      - main [ref=f3e20]:
+        - generic [ref=f3e21]:
+          - generic [ref=f3e22]:
+            - img [ref=f3e23]
+            - heading "Audio Library" [level=2] [ref=f3e25]
+            - generic [ref=f3e26]: (0)
+          - generic [ref=f3e27]:
+            - button "Files" [ref=f3e28] [cursor=pointer]:
+              - img [ref=f3e29]
+              - generic [ref=f3e31]: Files
+            - button "Folder" [ref=f3e32] [cursor=pointer]:
+              - img [ref=f3e33]
+              - generic [ref=f3e35]: Folder
+          - generic [ref=f3e36]:
+            - textbox "Import from URL..." [ref=f3e37]
+            - button "Import" [ref=f3e38] [cursor=pointer]
+          - button "Clear Library" [disabled] [ref=f3e40]:
+            - img [ref=f3e41]
+            - generic [ref=f3e43]: Clear Library
+          - textbox "Search library..." [ref=f3e44]
+          - generic [ref=f3e46]:
+            - paragraph [ref=f3e47]: Your audio library is empty.
+            - paragraph [ref=f3e48]: Drag & drop audio files or folders here to get started.
+        - generic [ref=f3e49]:
+          - generic [ref=f3e50]:
+            - generic [ref=f3e51]:
+              - img [ref=f3e52]
+              - heading "Ambiance Mixer" [level=2] [ref=f3e54]
+            - generic [ref=f3e55]:
+              - button "Open User Guide" [ref=f3e56] [cursor=pointer]:
+                - img [ref=f3e57]
+              - button "Toggle Event Log" [ref=f3e59] [cursor=pointer]:
+                - img [ref=f3e60]
+              - button "Open mixer settings" [ref=f3e62] [cursor=pointer]:
+                - img [ref=f3e63]
+          - generic [ref=f3e67]:
+            - paragraph [ref=f3e68]: The Ambiance Mixer is empty.
+            - paragraph [ref=f3e69]: Add tracks from the library to create a soundscape.
+        - generic [ref=f3e70]:
+          - generic [ref=f3e71]:
+            - generic [ref=f3e72]:
+              - img [ref=f3e73]
+              - heading "FX Deck" [level=2] [ref=f3e75]
+            - generic [ref=f3e76]:
+              - button "Stop All FX" [disabled] [ref=f3e77]
+              - button "Assign" [ref=f3e78] [cursor=pointer]
+          - generic [ref=f3e79]:
+            - button "F1" [ref=f3e81] [cursor=pointer]:
+              - generic [ref=f3e82]: F1
+            - button "F2" [ref=f3e84] [cursor=pointer]:
+              - generic [ref=f3e85]: F2
+            - button "F3" [ref=f3e87] [cursor=pointer]:
+              - generic [ref=f3e88]: F3
+            - button "F4" [ref=f3e90] [cursor=pointer]:
+              - generic [ref=f3e91]: F4
+            - button "F5" [ref=f3e93] [cursor=pointer]:
+              - generic [ref=f3e94]: F5
+            - button "F6" [ref=f3e96] [cursor=pointer]:
+              - generic [ref=f3e97]: F6
+            - button "F7" [ref=f3e99] [cursor=pointer]:
+              - generic [ref=f3e100]: F7
+            - button "F8" [ref=f3e102] [cursor=pointer]:
+              - generic [ref=f3e103]: F8
+            - button "F9" [ref=f3e105] [cursor=pointer]:
+              - generic [ref=f3e106]: F9
+            - button "F10" [ref=f3e108] [cursor=pointer]:
+              - generic [ref=f3e109]: F10
+            - button "F11" [ref=f3e111] [cursor=pointer]:
+              - generic [ref=f3e112]: F11
+            - button "F12" [ref=f3e114] [cursor=pointer]:
+              - generic [ref=f3e115]: F12
+          - generic [ref=f3e116]:
+            - heading "Saved Scenes" [level=3] [ref=f3e118]
+            - button "Import Scene/Deck" [ref=f3e120] [cursor=pointer]:
+              - img [ref=f3e121]
+              - generic [ref=f3e123]: Import Scene/Deck
+  - generic [ref=e135]: "[21:01:27] >> TELEMETRY: dndbeyond-mcp.get_party {campaignId:53945}"

@@ -1,0 +1,3460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tactical DM Cockpit</title>
+<style>
+  :root {
+    --bg:        oklch(9% 0 0);
+    --surface:   oklch(12% 0 0);
+    --fg:        oklch(96% 0 0);
+    --muted:     oklch(70% 0.02 240);
+    --border:    oklch(30% 0 0);
+    --accent:    oklch(78% 0.13 70);
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-body:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+  html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:14px; line-height:1.4; user-select:none; }
+  * { transition:none !important; box-sizing:border-box; }
+
+  /* ===== SPLASH SCREEN ===== */
+  #splash-screen {
+    position:fixed; inset:0; z-index:2000;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:40px;
+  }
+  .splash-brand { text-align:center; margin-bottom:48px; }
+  .splash-title { font-family:var(--font-display); font-weight:800; font-size:clamp(36px,5vw,72px); letter-spacing:-0.03em; color:var(--fg); }
+  .splash-sub { font-family:var(--font-body); color:var(--muted); font-size:16px; margin-top:8px; }
+
+  .splash-form {
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    width:100%; max-width:480px;
+  }
+  .splash-label {
+    font-family:var(--font-display); font-weight:700; font-size:13px;
+    color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;
+    align-self:flex-start;
+  }
+  .splash-select {
+    width:100%; padding:14px 16px;
+    background:var(--surface); color:var(--fg);
+    border:1px solid var(--border); border-radius:6px;
+    font-family:var(--font-body); font-size:16px; font-weight:700;
+    outline:none; cursor:pointer;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffb800' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 16px center;
+  }
+  .splash-select:focus { border-color:var(--accent); }
+  .splash-select option { background:var(--surface); color:var(--fg); }
+
+  .splash-btn {
+    width:100%; padding:14px;
+    background:var(--accent); color:#000;
+    border:none; border-radius:6px;
+    font-family:var(--font-display); font-weight:800; font-size:15px;
+    cursor:pointer; text-transform:uppercase; letter-spacing:0.08em;
+  }
+  .splash-btn:active { background:#d5a000; }
+  .splash-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  .splash-footer {
+    position:absolute; bottom:16px;
+    color:var(--muted); font-size:12px; font-family:var(--font-body);
+  }
+
+  /* ===== APP SHELL ===== */
+  #app-container { width:100%; height:100%; display:none; }
+  .workspace-controller {
+    position:fixed; top:0; left:0; right:0; height:4vh; min-height:32px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface); border-bottom:2px solid var(--border);
+    z-index:1000;
+  }
+  .tab {
+    flex:0 0 auto; padding:4px 12px; margin:0 4px;
+    font-family:var(--font-display); font-weight:800; font-size:13px;
+    cursor:pointer; color:var(--muted);
+    border:1px solid var(--border); border-radius:4px; background:none;
+  }
+  .tab.active { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+
+  .context-bar {
+    position:fixed; top:4vh; left:0; right:0; height:3vh; min-height:24px;
+    background:var(--surface); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 12px;
+    font-family:var(--font-body); font-size:12px; color:var(--accent);
+    z-index:999; letter-spacing:0.05em;
+  }
+
+  /* ===== PAGES ===== */
+  .page {
+    position:absolute; top:7vh; bottom:4vh; left:0; right:0;
+    overflow:hidden; display:none;
+    background:var(--bg);
+  }
+  .page.active { display:grid; }
+  .grid-3 { grid-template-columns:30% 40% 30%; }
+  .grid-2-4-6 { grid-template-columns:20% 50% 30%; }
+  .grid-1-7 { grid-template-columns:30% 70%; }
+  .grid-1-3-6 { grid-template-columns:30% 25% 45%; }
+  .grid-2-3-4-3 { grid-template-columns:15% 22% 40% 23%; }
+  .col { overflow-y:auto; padding:8px; }
+
+  /* ===== WIDGETS ===== */
+  .header { font-family:var(--font-display); font-weight:800; font-size:15px; margin-bottom:8px; color:var(--fg); }
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:6px;
+    padding:8px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.5); position:relative;
+  }
+  .card.dead { background:#5a0000; animation:flashDead 0.8s infinite; }
+  @keyframes flashDead { 0%,100%{box-shadow:0 0 0 0 rgba(255,0,0,0.2);} 50%{box-shadow:0 0 8px 4px rgba(255,0,0,0.6);} }
+  .heavy { font-weight:800; }
+  .hp-bar { background:#300; height:20px; border-radius:3px; overflow:hidden; margin:6px 0; position:relative; }
+  .hp-fill { background:#c00; height:100%; width:0%; }
+  .hp-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:13px; }
+  .grid-square { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; margin-top:4px; }
+  .grid-square div { background:#111; color:#fff; text-align:center; padding:2px 0; font-weight:800; font-size:12px; border-radius:2px; }
+  .table { width:100%; border-collapse:collapse; font-size:13px; }
+  .table th, .table td { border:1px solid var(--border); padding:4px; }
+  .table th { background:var(--surface); font-weight:800; }
+  .button {
+    background:var(--accent); color:#000; border:none; border-radius:4px;
+    padding:6px 8px; font-weight:800; font-size:13px; cursor:pointer;
+    text-align:center; width:100%; margin-top:6px; font-family:var(--font-display);
+  }
+  .button:active { background:#d5a000; }
+  .button.secondary { background:#222; color:var(--fg); border:1px solid var(--border); }
+  .list { max-height:140px; overflow-y:auto; margin-top:6px; }
+  .list-item { display:flex; justify-content:space-between; align-items:center; padding:4px; border-bottom:1px solid var(--border); font-size:13px; }
+  .list-item button { background:#222; color:#fff; border:none; border-radius:3px; padding:2px 6px; cursor:pointer; font-size:12px; }
+  .list-item button:hover { background:#333; }
+  .meter { height:16px; background:#555; border-radius:4px; overflow:hidden; margin:6px 0; position:relative; }
+  .meter-fill { height:100%; width:0%; background:var(--accent); }
+  .meter-fill.deadly { background:#ff4000; }
+  .active-turn { border-left:4px solid var(--accent); background:#111; }
+  .active-indicator { width:6px; height:16px; background:var(--accent); animation:blink 1s steps(2) infinite; display:inline-block; vertical-align:middle; margin-right:6px; }
+  .initiative-ladder-row.dead { background:#3a0000 !important; opacity:0.5; }
+  .initiative-ladder-row.dead .hp-val { color:#f44; text-decoration:line-through; }
+  .initiative-ladder-row.dead strong { text-decoration:line-through; color:#888; }
+  .dmg-input { width:48px; padding:3px 4px; background:#111; color:var(--fg); border:1px solid var(--border); border-radius:3px; font-family:var(--font-body); font-size:12px; text-align:center; }
+  .btn-dmg { background:#600; color:#fff; border:none; border-radius:3px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:800; }
+  .btn-dmg:hover { background:#800; }
+  .btn-heal { background:#1a5; color:#fff; border:none; border-radius:3px; padding:3px 8px; font-size:11px; cursor:pointer; font-weight:800; }
+  .btn-heal:hover { background:#2a6; }
+  #engagement-mode { height:100%; display:flex; flex-direction:column; gap:8px; }
+  #engagement-mode .card { flex-shrink:0; }
+  #engagement-mode .card:last-child { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  @keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
+  .input { width:100%; padding:6px; background:#111; color:var(--fg); border:1px solid var(--border); border-radius:4px; font-family:var(--font-body); font-size:13px; }
+  .input::placeholder { color:var(--muted); }
+  .condition-tag { display:inline-block; padding:2px 6px; background:#222; border:1px solid var(--accent); border-radius:3px; font-size:11px; color:var(--fg); margin-right:4px; }
+  /* Encounter builder styles */
+  .encounter-item { display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px solid var(--border); font-size:12px; cursor:pointer; }
+  .encounter-item:hover { background:#1a1a1a; }
+  .encounter-item.active { background:#222; border-left:3px solid var(--accent); }
+  .encounter-item .diff-badge { font-size:10px; padding:1px 5px; border-radius:3px; font-weight:800; }
+  .diff-trivial { background:#555; color:#fff; }
+  .diff-easy { background:#3a7; color:#fff; }
+  .diff-medium { background:#ca3; color:#000; }
+  .diff-hard { background:#d52; color:#fff; }
+  .diff-deadly { background:#c00; color:#fff; }
+  .monster-card { display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px solid var(--border); font-size:12px; cursor:pointer; }
+  .monster-card:hover { background:#1a1a1a; }
+  .monster-card.selected { background:#222; border-left:3px solid var(--accent); }
+  .monster-card .badge { font-size:10px; padding:1px 4px; border-radius:3px; margin-left:4px; }
+  .badge-ddb { background:#2a4; color:#fff; }
+  .badge-homebrew { background:#a42; color:#fff; }
+  .badge-xp { background:#222; color:var(--accent); border:1px solid var(--accent); }
+  .monster-search-result { padding:5px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .monster-search-result:hover { background:#1a1a1a; }
+  .monster-search-result .cr-tag { font-size:10px; color:var(--muted); }
+  .party-checkbox { display:flex; align-items:center; gap:6px; padding:3px 0; font-size:12px; }
+  .test-light { display:flex; align-items:center; gap:8px; margin-top:8px; padding:8px; border-radius:4px; font-size:12px; font-family:var(--font-body); }
+  .test-light.idle { background:var(--surface); color:var(--muted); border:1px solid var(--border); }
+  .test-light.ok { background:#1a3a1a; color:#4f4; border:1px solid #2a5; }
+  .test-light.err { background:#3a1a1a; color:#f44; border:1px solid #a22; }
+  .test-btn { background:#222; color:var(--fg); border:1px solid var(--border); border-radius:4px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:800; }
+  .test-btn:hover { background:#333; }
+  .init-row { display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px solid var(--border); font-size:12px; }
+  .init-row .name { font-weight:800; min-width:120px; }
+  .init-row .roll-btn { background:#222; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:2px 8px; font-size:12px; cursor:pointer; }
+  .init-row .roll-btn:hover { background:#333; }
+  .init-row .init-input { width:50px; padding:4px; background:#111; color:var(--fg); border:1px solid var(--border); border-radius:3px; font-family:var(--font-body); font-size:13px; text-align:center; }
+  .initiative-ladder-row { cursor:pointer; }
+  .initiative-ladder-row:hover { background:#1a1a1a; }
+  .initiative-ladder-row.selected { background:#222; border-left:3px solid var(--accent); }
+  .footer {
+    position:fixed; bottom:0; left:0; right:0; height:4vh; min-height:32px;
+    background:var(--surface); border-top:2px solid var(--border);
+    padding:4px 12px; font-family:var(--font-body); font-size:12px; color:var(--accent);
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis; z-index:1000;
+  }
+
+  /* Phase 1: Initiative Ladder Rich Tactical Dashboard */
+  .init-hp-bar { height:6px; background:#300; border-radius:3px; overflow:hidden; margin:3px 0; }
+  .init-hp-fill { height:100%; width:0%; border-radius:3px; }
+  .init-hp-fill.high { background:#2a5; }
+  .init-hp-fill.mid { background:#ca3; }
+  .init-hp-fill.low { background:#c00; }
+  .bloodied-chip { display:inline-block; padding:1px 5px; background:#600; color:#f44; border-radius:3px; font-size:10px; font-weight:800; margin-left:4px; vertical-align:middle; }
+  .cond-chip { display:inline-flex; align-items:center; gap:2px; padding:1px 5px; background:#222; border:1px solid var(--accent); border-radius:3px; font-size:10px; color:var(--fg); margin-right:3px; margin-bottom:2px; vertical-align:middle; }
+  .cond-chip .cond-remove { background:none; border:none; color:#f44; font-size:10px; cursor:pointer; padding:0 2px; line-height:1; }
+  .cond-chip .cond-remove:hover { color:#fff; }
+  .btn-reaction { background:#222; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:2px 6px; font-size:10px; cursor:pointer; font-weight:800; margin-right:4px; }
+  .btn-reaction.used { background:#111; color:#555; border-color:#333; }
+  .badge-lr { display:inline-block; padding:1px 5px; background:#2a4; color:#fff; border-radius:3px; font-size:10px; font-weight:800; margin-left:4px; cursor:pointer; vertical-align:middle; }
+  .badge-lr.empty { background:#111; color:#555; border:1px solid #333; }
+  .icon-lair, .icon-regional { font-size:12px; margin-left:3px; cursor:help; }
+  .temp-hp-row { display:flex; align-items:center; gap:4px; margin-top:3px; }
+  .temp-hp-input { width:40px; padding:2px 4px; background:#111; color:var(--fg); border:1px solid var(--border); border-radius:3px; font-family:var(--font-body); font-size:11px; text-align:center; }
+  .btn-temp { background:#225; color:#88f; border:1px solid #44a; border-radius:3px; padding:2px 6px; font-size:10px; cursor:pointer; font-weight:800; }
+  .temp-display { color:#88f; font-size:11px; margin-left:4px; }
+  .cond-add-select { background:#111; color:var(--fg); border:1px solid var(--border); border-radius:3px; font-size:11px; padding:2px 4px; margin-top:3px; }
+
+  /* Phase 3: Encounter Builder Expansion */
+  .env-tag { display:inline-block; padding:1px 5px; background:#2a4; color:#fff; border-radius:3px; font-size:10px; font-weight:800; margin-left:4px; vertical-align:middle; }
+  .random-encounter-row { display:flex; gap:4px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .random-encounter-row select, .random-encounter-row input { font-size:11px; padding:3px 4px; }
+  .btn-loot { background:#2a4; color:#fff; border:none; border-radius:3px; padding:4px 8px; font-size:11px; cursor:pointer; font-weight:800; }
+  .btn-loot:hover { background:#3b5; }
+  .btn-random { background:#a42; color:#fff; border:none; border-radius:3px; padding:4px 8px; font-size:11px; cursor:pointer; font-weight:800; }
+  .btn-random:hover { background:#b53; }
+  .loot-modal-overlay { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; }
+  .loot-modal-overlay.active { display:flex; }
+  .loot-modal { background:var(--surface); border:2px solid var(--accent); border-radius:8px; width:90vw; max-width:600px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; }
+  .loot-modal .header { flex-shrink:0; padding:12px 16px; font-weight:800; font-size:14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .loot-body { flex:1; overflow-y:auto; padding:16px; font-size:12px; }
+  .loot-result-group { margin-bottom:12px; padding:8px; background:#111; border-radius:4px; border:1px solid var(--border); }
+  .loot-result-group h4 { margin:0 0 6px; color:var(--accent); font-size:13px; }
+  .loot-result-group .loot-line { margin:2px 0; color:var(--fg); }
+  .loot-result-group .loot-line.magic { color:#88f; }
+  .loot-result-group .loot-line.gem { color:#ca3; }
+  .loot-result-group .loot-line.coin { color:#2a5; }
+  .loot-controls { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+  .loot-controls select, .loot-controls button { font-size:12px; padding:4px 8px; }
+  .loot-btn-close { background:#500; color:#fff; border:none; border-radius:3px; padding:4px 10px; font-size:12px; cursor:pointer; }
+  .fullscreen-qr-overlay { position:fixed; inset:0; z-index:2500; background:rgba(0,0,0,0.9); display:none; }
+  .fullscreen-qr-overlay.active { display:block; }
+  .fullscreen-qr-content { width:100%; height:100%; padding:24px; overflow-y:auto; font-size:14px; line-height:1.6; }
+  .fullscreen-qr-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .fullscreen-qr-header h2 { margin:0; color:var(--accent); font-size:20px; }
+  .btn-fs { background:#222; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:2px 8px; font-size:12px; cursor:pointer; font-weight:800; margin-left:4px; }
+  .btn-fs:hover { background:#333; }
+</style>
+</head>
+<body>
+
+<!-- ==================== SPLASH SCREEN ==================== -->
+<div id="splash-screen">
+  <div class="splash-brand">
+    <div class="splash-title">TACTICAL DM COCKPIT</div>
+    <div class="splash-sub">Select Active Campaign &amp; AI Orchestration</div>
+  </div>
+
+  <div class="splash-form">
+    <div class="splash-label">Campaign</div>
+    <select class="splash-select" id="splash-campaign">
+      <option value="" disabled selected>— choose campaign —</option>
+    </select>
+
+    <div class="splash-label">AI Provider</div>
+    <select class="splash-select" id="splash-ai-provider">
+      <option value="ollama_local">ollama_local</option>
+      <option value="ollama_cloud">ollama_cloud</option>
+      <option value="openai">openai</option>
+      <option value="claude">claude</option>
+      <option value="openrouter">openrouter</option>
+    </select>
+
+    <div class="splash-label">Endpoint URL</div>
+    <input class="splash-select" type="text" id="splash-ai-endpoint" placeholder="https://api.example.com/v1/chat/completions" style="appearance:auto; background-image:none;">
+
+    <div class="splash-label">Model Name</div>
+    <input class="splash-select" type="text" id="splash-ai-model" placeholder="e.g. llama3.2, gemma3, qwen3, mistral:7b" style="appearance:auto; background-image:none;">
+    <div id="model-hint" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+
+    <div class="splash-label">API Key <span id="key-hint" style="font-size:11px;color:var(--muted);">(required)</span></div>
+    <input class="splash-select" type="password" id="splash-ai-key" placeholder="sk-••••••••••••••••••••" style="appearance:auto; background-image:none;">
+
+    <div class="test-light idle" id="llm-test-light">
+      <button class="test-btn" id="llm-test-btn">TEST CONNECTION</button>
+      <span id="llm-test-msg">Click to verify your LLM setup</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+      <input type="checkbox" id="splash-remember" checked style="accent-color:var(--accent);">
+      <label for="splash-remember" style="font-size:12px;color:var(--muted);cursor:pointer;">Remember this session locally (encrypted)</label>
+    </div>
+
+    <div style="margin-top:4px;">
+      <a href="#" id="splash-clear" style="font-size:11px;color:var(--muted);text-decoration:underline;">Clear saved session</a>
+    </div>
+
+    <button class="splash-btn" id="enter-btn" disabled>[ CONFIRM &amp; INITIALIZE COCKPIT ]</button>
+  </div>
+
+  <div class="splash-footer">v2.1.0 // Tactical Interface Module</div>
+</div>
+
+<!-- ==================== APP CONTAINER ==================== -->
+<div id="app-container">
+  <!-- Workspace controller -->
+  <div class="workspace-controller">
+    <div class="tab active" data-page="1">F1: CHARACTERS</div>
+    <div class="tab" data-page="2">F2: ENCOUNTERS</div>
+    <div class="tab" data-page="3">F3: LORE</div>
+    <div class="tab" data-page="4">F4: ADVENTURES</div>
+    <div class="tab" data-page="5">F5: SOUNDBOARD</div>
+  </div>
+  <div class="context-bar" id="context-bar">NO CAMPAIGN LOADED</div>
+
+  <!-- Page 1: CHARACTERS -->
+  <section class="page active grid-3" id="page-1">
+    <div class="col" id="p1-col-1">
+      <div class="header">DDB PARTY TELEMETRY</div>
+    </div>
+    <div class="col" id="p1-col-2">
+      <div class="header">Detail Inspection Sheet</div>
+      <div class="card" id="detail-sheet">Select a character from telemetry.</div>
+    </div>
+    <div class="col" id="p1-col-3">
+      <div class="header">Party Inventory &amp; Currency Ledger</div>
+      <div id="inventory-panel"></div>
+    </div>
+  </section>
+
+  <!-- Page 2: ENCOUNTERS -->
+  <section class="page grid-2-3-4-3" id="page-2">
+    <div class="col" id="p2-col-1"><div class="header">Mini Telemetry</div></div>
+    <div class="col" id="p2-col-encounter">
+      <div class="header">Encounter Library</div>
+      <div class="card">
+        <div id="encounter-library-list" class="list" style="max-height:300px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:4px;margin-top:8px;">
+          <button class="button secondary" id="new-encounter-btn" style="width:auto;font-size:12px;">+ NEW</button>
+          <button class="button secondary" id="save-encounter-btn" style="width:auto;font-size:12px;">💾 SAVE</button>
+        </div>
+      </div>
+      <div class="header" style="margin-top:12px;">Monster Database</div>
+      <div class="card">
+        <input class="input" id="monster-search" placeholder="Search D&D Beyond monsters..." style="margin-bottom:4px;">
+        <select class="input" id="monster-cr-filter" style="margin-bottom:4px;font-size:12px;">
+          <option value="">Any CR</option>
+          <option value="0">CR 0</option>
+          <option value="1/8">CR 1/8</option>
+          <option value="1/4">CR 1/4</option>
+          <option value="1/2">CR 1/2</option>
+          <option value="1">CR 1</option>
+          <option value="2">CR 2</option>
+          <option value="3">CR 3</option>
+          <option value="4">CR 4</option>
+          <option value="5">CR 5+</option>
+        </select>
+        <button class="button secondary" id="search-monsters-btn" style="width:auto;font-size:12px;margin-bottom:4px;">🔍 SEARCH</button>
+        <div id="monster-search-results" class="list" style="max-height:250px;overflow-y:auto;font-size:12px;"></div>
+        <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:800;">RANDOM ENCOUNTER</div>
+          <div class="random-encounter-row">
+            <select class="input" id="random-env" style="width:auto;flex:1;min-width:80px;">
+              <option value="Any">Any Terrain</option>
+              <option value="Arctic">Arctic</option>
+              <option value="Coastal">Coastal</option>
+              <option value="Desert">Desert</option>
+              <option value="Forest">Forest</option>
+              <option value="Grassland">Grassland</option>
+              <option value="Hill">Hill</option>
+              <option value="Mountain">Mountain</option>
+              <option value="Swamp">Swamp</option>
+              <option value="Underdark">Underdark</option>
+              <option value="Underwater">Underwater</option>
+              <option value="Urban">Urban</option>
+            </select>
+            <select class="input" id="random-cr-min" style="width:55px;">
+              <option value="0">CR 0</option><option value="1/8">1/8</option><option value="1/4">1/4</option><option value="1/2">1/2</option>
+              <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+              <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+            </select>
+            <span style="font-size:11px;color:var(--muted);">-</span>
+            <select class="input" id="random-cr-max" style="width:55px;">
+              <option value="0">CR 0</option><option value="1/8">1/8</option><option value="1/4">1/4</option><option value="1/2">1/2</option>
+              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+              <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              <option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+            </select>
+            <button class="btn-random" id="generate-random-btn" style="width:auto;">🎲 ROLL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col" id="p2-col-2">
+      <div id="staging-mode">
+        <div class="header">Encounter Builder</div>
+        <div class="card">
+          <div class="header">Party Selection</div>
+          <div id="party-selection" style="font-size:12px;">Loading party...</div>
+        </div>
+        <div class="card">
+          <div class="header">Encounter Difficulty</div>
+          <div id="difficulty-display" style="font-size:13px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span>Easy:</span> <span id="diff-easy">–</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span>Medium:</span> <span id="diff-medium">–</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span>Hard:</span> <span id="diff-hard">–</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span>Deadly:</span> <span id="diff-deadly">–</span>
+            </div>
+            <div class="meter" style="margin-top:8px;">
+              <div class="meter-fill" id="difficulty-meter" style="width:0%;background:#555;"></div>
+            </div>
+            <div id="difficulty-label" style="text-align:center;font-weight:800;margin-top:4px;color:var(--muted);">NO ENCOUNTER</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div class="header" style="margin:0;">Environment & Loot</div>
+            <button class="btn-loot" id="generate-loot-btn" style="width:auto;">💰 LOOT</button>
+          </div>
+          <select class="input" id="encounter-environment" style="font-size:12px;">
+            <option value="">— select terrain —</option>
+            <option value="Arctic">Arctic</option>
+            <option value="Coastal">Coastal</option>
+            <option value="Desert">Desert</option>
+            <option value="Dungeon">Dungeon</option>
+            <option value="Forest">Forest</option>
+            <option value="Grassland">Grassland</option>
+            <option value="Hill">Hill</option>
+            <option value="Mountain">Mountain</option>
+            <option value="Planar">Planar</option>
+            <option value="Swamp">Swamp</option>
+            <option value="Underdark">Underdark</option>
+            <option value="Underwater">Underwater</option>
+            <option value="Urban">Urban</option>
+          </select>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="header" style="margin:0;">Current Encounter</div>
+            <button class="button secondary" id="clear-pool-btn" style="width:auto;font-size:11px;">CLEAR</button>
+          </div>
+          <div class="list" id="encounter-pool"></div>
+        </div>
+        <button class="button" id="init-engagement-btn">[ INITIALIZE ENGAGEMENT MODE ]</button>
+      </div>
+
+      <!-- Initiative Entry -->
+      <div id="initiative-entry" style="display:none;">
+        <div class="header">Roll Initiative</div>
+        <div class="card" id="initiative-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="button" id="begin-combat-btn">[ BEGIN COMBAT ]</button>
+          <button class="button secondary" id="cancel-init-btn" style="width:auto;">[ CANCEL ]</button>
+        </div>
+      </div>
+
+      <div id="engagement-mode" style="display:none;">
+        <div class="header" style="flex-shrink:0;">Combat Manager – Engagement</div>
+        <div class="card" style="flex-shrink:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>ROUND: <span id="round-number">1</span></div>
+            <div>
+              <button class="button secondary" id="prev-round-btn" style="width:auto;">← PREV</button>
+              <button class="button" id="next-round-btn" style="width:auto;">NEXT →</button>
+              <button class="button secondary" id="abort-encounter-btn" style="width:auto;">[ ABORT ]</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <div class="header" style="flex-shrink:0;">Unified Initiative Ladder</div>
+          <div id="initiative-ladder" style="overflow-y:auto;flex:1;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col" id="p2-col-3">
+      <div class="header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Tactical Quick‑Ref</span>
+        <button class="btn-fs" id="fullscreen-qr-btn" title="Fullscreen (F)">⛶</button>
+      </div>
+      <div class="card" id="quickref" style="overflow-y:auto;max-height:calc(100vh - 12vh);font-size:12px;">
+        <div id="qr-placeholder" style="color:var(--muted);">Click a creature in the encounter pool to load full tactical data.</div>
+        <div id="qr-content" style="display:none;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 3: LORE -->
+  <section class="page grid-1-7" id="page-3">
+    <div class="col" id="p3-col-1">
+      <div class="header">Vault Tree Explorer</div>
+      <ul id="vault-tree" style="list-style:none;padding-left:0;"></ul>
+    </div>
+    <div class="col" id="p3-col-2">
+      <div class="header">Markdown Viewer</div>
+      <div id="markdown-view" style="font-size:13px;">
+        <h2>Welcome to the Vault</h2>
+        <p>Select a node from the tree to view campaign lore.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 4: ADVENTURES -->
+  <section class="page grid-1-3-6" id="page-4">
+    <div class="col" id="p4-col-1">
+      <div class="header">File Explorer &amp; Beat Navigator</div>
+      <input type="file" id="adventure-file-input" accept=".md" style="display:none;">
+      <button class="button" id="adventure-file-btn" style="margin-bottom:12px;">LOAD ADVENTURE FILE</button>
+      <div class="header">Beat Navigator</div>
+      <ul id="beat-list" style="list-style:none;padding-left:0;"></ul>
+    </div>
+    <div class="col" id="p4-col-2">
+      <div class="header">Truth Matrix</div>
+      <table class="table" id="truth-matrix">
+        <thead><tr><th>Players Believe</th><th>Actual Truth</th></tr></thead>
+        <tbody id="truth-matrix-body">
+        </tbody>
+      </table>
+      <div class="header" style="margin-top:12px;">Environmental Clock</div>
+      <div class="card" id="env-clock">
+        <div>Stage: <strong id="clock-stage">—</strong></div>
+        <div>DC: <strong id="clock-dc">—</strong></div>
+        <div id="clock-effect">—</div>
+      </div>
+    </div>
+    <div class="col" id="p4-col-3">
+      <div class="header">Audio &amp; Prop Director</div>
+      <div class="card">
+        <div><strong>Cue:</strong> "Cave_Drip_01.mp3" (loop)</div>
+        <div style="margin-top:6px;">
+          <button class="button secondary" style="width:auto;">PLAY</button>
+          <button class="button secondary" style="width:auto;">PAUSE</button>
+          <button class="button secondary" style="width:auto;">STOP</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <blockquote id="handout-text" style="border-left:4px solid var(--accent); padding-left:8px; margin:0;">
+          "You hear distant chanting echoing through the tunnel…"
+        </blockquote>
+        <button class="button secondary" id="copy-handout-btn" style="width:auto; margin-top:8px;">COPY TO CLIPBOARD</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Page 5: SOUNDBOARD — opens in separate window to avoid renderer memory pressure -->
+  <section class="page" id="page-5">
+    <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+      <div style="text-align:center;max-width:500px;">
+        <div style="font-family:var(--font-display);font-weight:800;font-size:24px;margin-bottom:16px;">TTRPG SOUNDBOARD</div>
+        <div style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6;">
+          The soundboard opens in its own window to prevent audio memory from competing with the DM Cockpit renderer.
+          <br><br>
+          Once opened, click the <strong>🎵</strong> button on any encounter in the Encounter Builder (F2) to auto-generate a soundscape.
+        </div>
+        <button class="button" id="open-soundboard-btn" style="font-size:16px;padding:14px 24px;">[ OPEN SOUNDBOARD IN NEW WINDOW ]</button>
+        <div id="soundboard-fallback" style="display:none;margin-top:12px;">
+          <a href="/soundboard" target="_blank" style="color:var(--accent);font-size:13px;text-decoration:underline;">Popup blocked — click here to open soundboard</a>
+        </div>
+        <div id="soundboard-status" style="margin-top:16px;color:var(--muted);font-size:12px;">Not connected</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div class="footer" id="rpc-terminal">&gt;&gt; READY</div>
+</div>
+
+<script>
+/* ============================================================
+   TACTICAL DM COCKPIT – COMPLETE FRONTEND ENGINE
+   Zero-transition, instantaneous state mutation only.
+   ============================================================ */
+
+/* ---------- STATE ---------- */
+const SESSION = { campaignId: null, campaignName: null, aiProvider: null, aiEndpoint: null, aiModel: null, aiKey: null };
+let round = 1;
+let currentInitiativeIndex = 0;
+let telemetryInterval = null;
+let encounterPool = [];
+let selectedMonsterIdx = -1;
+let initiativeOrder = [];
+let bestiaryCache = [];
+let partyCache = [];
+let adventureBeats = [];
+let currentBeatIndex = -1;
+
+/* ---------- COMBAT STATE & CONSTANTS ---------- */
+const CONDITIONS_LIST = [
+  'Blinded','Charmed','Deafened','Frightened','Grappled','Incapacitated',
+  'Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained',
+  'Stunned','Unconscious','Concentrating','Blessed','Bane','Hasted','Slowed',
+  'Restrained (Web)','Faerie Fire','Hexed','Hunter\'s Mark'
+];
+let combatLog = [];
+
+/* ---------- RPC LOGGER ---------- */
+const rpc = document.getElementById('rpc-terminal');
+function logRPC(msg) {
+  const ts = new Date().toISOString().slice(11,19);
+  rpc.textContent = '[' + ts + '] ' + msg;
+}
+
+/* ---------- API HELPERS ---------- */
+async function apiPost(url, body) {
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    console.error('apiPost error', url, res.status, errText.slice(0, 300));
+    throw new Error('HTTP ' + res.status + ' | ' + errText.slice(0, 200));
+  }
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
+}
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
+}
+
+/* ============================================================
+   BOOT LIFECYCLE – SPLASH SEQUENCE
+   ============================================================ */
+async function bootSplash() {
+  logRPC('>> BOOT: Enumerating campaigns from dndbeyond-mcp...');
+  try {
+    const campaigns = await apiPost('/api/mcp', { method: 'dndbeyond-mcp.list_campaigns', params: {}, id: 1 });
+    const sel = document.getElementById('splash-campaign');
+    sel.innerHTML = '<option value="" disabled selected>— choose campaign —</option>';
+    campaigns.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name + ' — ' + (c.playerCount || '?') + ' players — DM: ' + (c.dmUsername || '?');
+      sel.appendChild(opt);
+    });
+    logRPC('>> BOOT: ' + campaigns.length + ' campaign(s) enumerated');
+  } catch (e) {
+    logRPC('>> BOOT ERROR: ' + e.message);
+  }
+
+  // Restore saved session if present
+  try {
+    const session = await apiGet('/api/session');
+    if (session.initialized) {
+      const sel = document.getElementById('splash-campaign');
+      if (session.campaignId) {
+        sel.value = session.campaignId;
+      }
+      if (session.aiProvider) {
+        document.getElementById('splash-ai-provider').value = session.aiProvider;
+      }
+      if (session.aiEndpoint) {
+        document.getElementById('splash-ai-endpoint').value = session.aiEndpoint;
+      }
+      if (session.aiModel) {
+        document.getElementById('splash-ai-model').value = session.aiModel;
+      }
+      if (session.aiKey) {
+        document.getElementById('splash-ai-key').value = session.aiKey;
+      }
+      updateProviderDefaults();
+      validateSplash();
+      logRPC('>> BOOT: Restored saved session for ' + (session.campaignName || 'unknown'));
+    }
+  } catch (e) {
+    // No saved session — fresh boot
+  }
+
+  // Load saved encounters from localStorage
+  loadEncountersFromStorage();
+  logRPC('>> BOOT: Loaded ' + encounters.length + ' saved encounter(s) from library');
+}
+
+function isOllamaProvider() {
+  const p = document.getElementById('splash-ai-provider').value;
+  return p === 'ollama_local' || p === 'ollama_cloud';
+}
+
+function updateProviderDefaults() {
+  const provider = document.getElementById('splash-ai-provider').value;
+  const endpointInput = document.getElementById('splash-ai-endpoint');
+  const modelInput = document.getElementById('splash-ai-model');
+  const keyHint = document.getElementById('key-hint');
+  const modelHint = document.getElementById('model-hint');
+
+  if (provider.startsWith('ollama')) {
+    keyHint.textContent = '(not required for Ollama)';
+    modelHint.textContent = 'Ollama runs models locally. Make sure you have pulled this model first (ollama pull <model>). Any tag works: llama3.2, gemma3, mistral:7b, etc.';
+    if (!endpointInput.value) endpointInput.value = 'http://localhost:11434';
+    if (!modelInput.value) modelInput.value = 'llama3.2';
+  } else if (provider === 'openai') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model from OpenAI. No local download needed.';
+    if (!endpointInput.value) endpointInput.value = 'https://api.openai.com/v1/chat/completions';
+    if (!modelInput.value) modelInput.value = 'gpt-4o-mini';
+  } else if (provider === 'claude') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model from Anthropic. No local download needed.';
+    if (!endpointInput.value) endpointInput.value = 'https://api.anthropic.com/v1/messages';
+    if (!modelInput.value) modelInput.value = 'claude-3-5-sonnet-20241022';
+  } else if (provider === 'openrouter') {
+    keyHint.textContent = '(required)';
+    modelHint.textContent = 'Cloud model aggregator. Access to many models through one endpoint.';
+    if (!endpointInput.value) endpointInput.value = 'https://openrouter.ai/api/v1/chat/completions';
+    if (!modelInput.value) modelInput.value = 'openrouter/auto';
+  }
+}
+
+function validateSplash() {
+  const campaign = document.getElementById('splash-campaign').value;
+  const provider = document.getElementById('splash-ai-provider').value;
+  const endpoint = document.getElementById('splash-ai-endpoint').value.trim();
+  const key = document.getElementById('splash-ai-key').value.trim();
+  const btn = document.getElementById('enter-btn');
+  const needsKey = !isOllamaProvider();
+  btn.disabled = !(campaign && provider && endpoint && (!needsKey || key));
+}
+
+/* ---------- LLM TEST LIGHT ---------- */
+let testDebounce = null;
+function setTestLight(status, message) {
+  const light = document.getElementById('llm-test-light');
+  const msg = document.getElementById('llm-test-msg');
+  msg.textContent = message;
+  light.classList.remove('idle', 'ok', 'err');
+  light.classList.add(status);
+}
+
+async function testLLMConnection() {
+  const provider = document.getElementById('splash-ai-provider').value;
+  const endpoint = document.getElementById('splash-ai-endpoint').value.trim();
+  const model = document.getElementById('splash-ai-model').value.trim();
+  const key = document.getElementById('splash-ai-key').value.trim();
+
+  if (!provider || !endpoint || !model) {
+    setTestLight('idle', 'Fill in provider, endpoint, and model to test');
+    return;
+  }
+
+  setTestLight('idle', 'Testing connection...');
+  try {
+    const res = await apiPost('/api/test-llm', { provider, endpoint, model, key });
+    if (res && res.ok) {
+      setTestLight('ok', res.message || 'Connection OK');
+    } else {
+      setTestLight('err', res.error || 'Connection failed');
+    }
+  } catch (e) {
+    setTestLight('err', 'Server error: ' + e.message);
+  }
+}
+
+document.getElementById('llm-test-btn').addEventListener('click', testLLMConnection);
+
+function scheduleTest() {
+  if (testDebounce) clearTimeout(testDebounce);
+  testDebounce = setTimeout(testLLMConnection, 1200);
+}
+
+document.getElementById('splash-campaign').addEventListener('change', validateSplash);
+document.getElementById('splash-ai-provider').addEventListener('change', () => {
+  updateProviderDefaults();
+  validateSplash();
+  scheduleTest();
+});
+document.getElementById('splash-ai-endpoint').addEventListener('input', () => { validateSplash(); scheduleTest(); });
+document.getElementById('splash-ai-model').addEventListener('input', () => { validateSplash(); scheduleTest(); });
+document.getElementById('splash-ai-key').addEventListener('input', () => { validateSplash(); scheduleTest(); });
+
+document.getElementById('splash-clear').addEventListener('click', async (e) => {
+  e.preventDefault();
+  try {
+    await apiPost('/api/clear-session', {});
+    document.getElementById('splash-campaign').value = '';
+    document.getElementById('splash-ai-provider').value = 'ollama_local';
+    document.getElementById('splash-ai-endpoint').value = '';
+    document.getElementById('splash-ai-model').value = '';
+    document.getElementById('splash-ai-key').value = '';
+    validateSplash();
+    logRPC('>> SESSION: Saved credentials cleared');
+  } catch (err) {
+    logRPC('>> SESSION: Clear failed – ' + err.message);
+  }
+});
+
+document.getElementById('enter-btn').addEventListener('click', async () => {
+  const campaignId = document.getElementById('splash-campaign').value;
+  const campaignName = document.getElementById('splash-campaign').selectedOptions[0].text.split(' — ')[0];
+  const aiProvider = document.getElementById('splash-ai-provider').value;
+  const aiEndpoint = document.getElementById('splash-ai-endpoint').value.trim();
+  const aiModel = document.getElementById('splash-ai-model').value.trim();
+  const aiKey = document.getElementById('splash-ai-key').value.trim();
+
+  if (!campaignId || !aiProvider || !aiEndpoint) return;
+  if (!isOllamaProvider() && !aiKey) return;
+
+  const remember = document.getElementById('splash-remember').checked;
+  logRPC('>> INIT: Transmitting session configuration to server...');
+  try {
+    await apiPost('/api/init', { campaignId, campaignName, aiProvider, aiEndpoint, aiModel, aiKey, remember, id: 2 });
+    SESSION.campaignId = campaignId;
+    SESSION.campaignName = campaignName;
+    SESSION.aiProvider = aiProvider;
+    SESSION.aiEndpoint = aiEndpoint;
+    SESSION.aiModel = aiModel;
+    SESSION.aiKey = aiKey;
+
+    document.getElementById('splash-screen').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+    const modelLabel = aiModel ? ' (' + aiModel + ')' : '';
+    document.getElementById('context-bar').textContent =
+      'CAMPAIGN: ' + campaignName.toUpperCase() + ' // AI: ' + aiProvider.toUpperCase() + modelLabel;
+
+    logRPC('>> INIT: Session cached. Starting telemetry sync...');
+
+    await hydrateCharacters();
+    await hydrateInventory();
+    await hydrateBestiary();
+    buildVaultTree();
+    startTelemetry();
+
+    logRPC('>> INIT: Cockpit initialized. Telemetry active.');
+  } catch (e) {
+    logRPC('>> INIT ERROR: ' + e.message);
+  }
+});
+
+/* ============================================================
+   PAGE 1: CHARACTERS WORKSPACE [F1]
+   ============================================================ */
+async function hydrateCharacters() {
+  await pollPartyTelemetry();
+}
+
+async function pollPartyTelemetry() {
+  if (!SESSION.campaignId) return;
+  try {
+    logRPC('>> TELEMETRY: dndbeyond-mcp.get_party {campaignId:' + SESSION.campaignId + '}');
+    const party = await apiPost('/api/mcp', {
+      method: 'dndbeyond-mcp.get_party',
+      params: { campaignId: SESSION.campaignId },
+      id: Date.now()
+    });
+    partyCache = party;
+    // Default all PCs to selected if none are selected yet
+    if (!selectedPcIds.size && party.length) {
+      party.forEach(pc => selectedPcIds.add(pc.id));
+    }
+    renderCharacterCards(party);
+    renderMiniTelemetry(party);
+    renderPartySelection();
+    updateBaselineMetrics(party);
+    logRPC('>> TELEMETRY: ' + party.length + ' character(s) synced');
+  } catch (e) {
+    logRPC('>> TELEMETRY ERROR: ' + e.message);
+  }
+}
+
+function startTelemetry() {
+  if (telemetryInterval) clearInterval(telemetryInterval);
+  telemetryInterval = setInterval(pollPartyTelemetry, 60000);
+}
+
+function renderCharacterCards(party) {
+  const c1 = document.getElementById('p1-col-1');
+  c1.innerHTML = '<div class="header">DDB PARTY TELEMETRY</div>';
+  party.forEach(pc => {
+    const pct = pc.maxHp > 0 ? Math.max(0, (pc.hp / pc.maxHp) * 100) : 0;
+    const spellSlots = (pc.slots || []).filter(s => s.available > 0);
+    const slotHtml = spellSlots.length
+      ? '<div class="grid-square">' + spellSlots.map(s => {
+          const rem = s.available - s.used;
+          const style = rem === 0 ? 'background:#300;color:#666;' : '';
+          return '<div title="Level ' + s.level + ' slots" style="' + style + '" class="slot-box">L' + s.level + ':' + rem + '</div>';
+        }).join('') + '</div>'
+      : '';
+    const card = document.createElement('div');
+    card.className = 'card' + (pc.hp <= 0 ? ' dead' : '');
+    card.dataset.id = pc.id;
+    card.style.cursor = 'pointer';
+    card.innerHTML =
+      '<div class="heavy">' + pc.name + ' <span style="color:var(--muted);font-size:12px;">' + pc.cls + '</span></div>' +
+      '<div class="grid-square"><div>AC ' + pc.ac + '</div><div>LVL ' + pc.level + '</div></div>' +
+      '<div class="hp-bar">' +
+        '<div class="hp-fill" style="width:' + pct + '%"></div>' +
+        '<div class="hp-text">' + pc.hp + ' / ' + pc.maxHp + ' HP</div>' +
+      '</div>' +
+      slotHtml +
+      (pc.conditions.length ? '<div style="margin-top:4px;">' + pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') + '</div>' : '');
+    card.addEventListener('click', () => showCharacterDetail(pc));
+    c1.appendChild(card);
+  });
+}
+
+function showCharacterDetail(pc) {
+  const sheet = document.getElementById('detail-sheet');
+  sheet.innerHTML =
+    '<div class="heavy">' + pc.name + '</div>' +
+    '<div><strong>Class:</strong> ' + pc.cls + '</div>' +
+    '<div><strong>Level:</strong> ' + pc.level + '</div>' +
+    '<div><strong>AC:</strong> ' + pc.ac + '</div>' +
+    '<div><strong>HP:</strong> ' + pc.hp + ' / ' + pc.maxHp + ' ' + (pc.tempHp ? '(+' + pc.tempHp + ' temp)' : '') + '</div>' +
+    '<div><strong>Saving Throws:</strong> ' + pc.saves + '</div>' +
+    '<div><strong>Conditions:</strong> ' + (pc.conditions.length ? pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') : 'None') + '</div>' +
+    '<div><strong>Equipped:</strong> ' + (pc.items.length ? pc.items.join(', ') : 'None') + '</div>' +
+    '<div><strong>Senses:</strong> Per ' + pc.senses.per + ', Ins ' + pc.senses.ins + ', Inv ' + pc.senses.inv + '</div>';
+  logRPC('>> INSPECT character "' + pc.name + '" (id:' + pc.id + ') -> SUCCESS');
+}
+
+function renderMiniTelemetry(party) {
+  const col = document.getElementById('p2-col-1');
+  col.innerHTML = '<div class="header">Mini Telemetry</div>';
+  party.forEach(pc => {
+    const pct = pc.maxHp > 0 ? Math.max(0, (pc.hp / pc.maxHp) * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'card' + (pc.hp <= 0 ? ' dead' : '');
+    card.innerHTML =
+      '<div class="heavy">' + pc.name + '</div>' +
+      '<div>AC ' + pc.ac + ' | LVL ' + pc.level + '</div>' +
+      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div><div class="hp-text">' + pc.hp + '/' + pc.maxHp + '</div></div>';
+    col.appendChild(card);
+  });
+}
+
+function updateBaselineMetrics(party) {
+  // Baseline metrics removed from UI; this is now handled by party selection + difficulty display
+}
+
+async function hydrateInventory() {
+  try {
+    const data = await apiGet('/api/inventory');
+    renderInventory(data);
+    logRPC('>> INVENTORY: ledger synced from party_inventory.json');
+  } catch (e) {
+    logRPC('>> INVENTORY ERROR: ' + e.message);
+  }
+}
+
+function renderInventory(data) {
+  const panel = document.getElementById('inventory-panel');
+  const items = data.items || [];
+  const curr = data.currency || { gp: 0, sp: 0, cp: 0 };
+  let html = '<table class="table"><thead><tr><th>Item</th><th>Qty</th><th>Weight</th></tr></thead><tbody>';
+  items.forEach(i => {
+    html += '<tr><td>' + i.item + '</td><td>' + i.qty + '</td><td>' + i.weight + ' lb</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:8px;"><strong>GP:</strong> ' + curr.gp + '  <strong>SP:</strong> ' + curr.sp + '  <strong>CP:</strong> ' + curr.cp + '</div>';
+  panel.innerHTML = html;
+}
+
+/* ============================================================
+   PAGE 2: ENCOUNTERS WORKSPACE [F2]
+   ============================================================ */
+
+/* ---------- STATE ---------- */
+let encounters = [];
+let activeEncounterId = null;
+let selectedPcIds = new Set();
+let currentAdventureFileName = '';
+
+/* ---------- STORAGE ---------- */
+function loadEncountersFromStorage() {
+  try {
+    const raw = localStorage.getItem('dm-cockpit-encounters');
+    if (raw) {
+      encounters = JSON.parse(raw);
+      // Clean up any encounters with "Adventure: " prefix (old format)
+      const cleaned = encounters.filter(e => !e.name.startsWith('Adventure:'));
+      if (cleaned.length !== encounters.length) {
+        encounters = cleaned;
+        saveEncountersToStorage();
+        console.log('DEBUG: Cleaned', encounters.length - cleaned.length, 'encounters with "Adventure:" prefix');
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load encounters from localStorage:', e);
+    encounters = [];
+  }
+}
+
+function saveEncountersToStorage() {
+  try {
+    localStorage.setItem('dm-cockpit-encounters', JSON.stringify(encounters));
+  } catch (e) {
+    console.error('Failed to save encounters to localStorage:', e);
+  }
+}
+
+function makeEncounterNameUnique(base) {
+  let name = base;
+  let n = 2;
+  while (encounters.some(e => e.name === name)) {
+    name = base + ' (' + n + ')';
+    n++;
+  }
+  return name;
+}
+
+/* ---------- SOUNDBOARD BRIDGE ---------- */
+let soundboardWindow = null;
+let soundboardChannel = null;
+
+try {
+  soundboardChannel = new BroadcastChannel('dm-cockpit-soundboard');
+} catch (e) {
+  console.warn('BroadcastChannel not supported');
+}
+
+function openSoundboardWindow() {
+  if (soundboardWindow && !soundboardWindow.closed) {
+    soundboardWindow.focus();
+    return;
+  }
+  soundboardWindow = window.open('/soundboard', 'dm-cockpit-soundboard', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
+  const fallbackEl = document.getElementById('soundboard-fallback');
+  if (!soundboardWindow) {
+    logRPC('>> ERR  popup blocked — allow popups for localhost:8765');
+    if (fallbackEl) fallbackEl.style.display = 'block';
+    alert('Popup blocked. Please allow popups for localhost:8765, or click the link below to open the soundboard.');
+    return;
+  }
+  if (fallbackEl) fallbackEl.style.display = 'none';
+  const statusEl = document.getElementById('soundboard-status');
+  if (statusEl) statusEl.textContent = 'Soundboard window opened';
+  logRPC('>> SND  soundboard window opened');
+
+  const poll = setInterval(() => {
+    if (soundboardWindow.closed) {
+      clearInterval(poll);
+      if (statusEl) statusEl.textContent = 'Not connected';
+      soundboardWindow = null;
+      logRPC('>> SND  soundboard window closed');
+    }
+  }, 1000);
+}
+
+function sendToSoundboard(enc) {
+  // Always use BroadcastChannel if available — works across tabs even if opened manually
+  _sendViaBroadcast(enc);
+  // Also try window reference for focus + postMessage fallback
+  if (!soundboardWindow || soundboardWindow.closed) {
+    openSoundboardWindow();
+    setTimeout(() => {
+      _sendViaPostMessage(enc);
+    }, 1500);
+    return;
+  }
+  _sendViaPostMessage(enc);
+}
+
+function _buildPrompt(enc) {
+  const monsterList = (enc.monsters || []).map(m => (m.qty || 1) + 'x ' + m.name).join(', ');
+  return 'A ' + (enc.difficulty || 'tense') + ' D&D encounter: ' + enc.name + '. ' +
+    (monsterList ? 'Creatures: ' + monsterList + '. ' : '') +
+    'Build an immersive soundscape with appropriate ambiance and sound effects.';
+}
+
+function _sendViaBroadcast(enc) {
+  if (!soundboardChannel) return;
+  const prompt = _buildPrompt(enc);
+  soundboardChannel.postMessage({ type: 'DM_COCKPIT_SET_PROMPT', prompt: prompt });
+  logRPC('>> SND  broadcast prompt to soundboard: ' + enc.name);
+}
+
+function _sendViaPostMessage(enc) {
+  if (!soundboardWindow || soundboardWindow.closed) return;
+  const prompt = _buildPrompt(enc);
+  soundboardWindow.postMessage({ type: 'DM_COCKPIT_SET_PROMPT', prompt: prompt }, '*');
+  try { soundboardWindow.focus(); } catch (e) {}
+  logRPC('>> SND  sent encounter to soundboard: ' + enc.name);
+}
+
+/* ---------- ENCOUNTER LIBRARY ---------- */
+function getDifficultyBadgeClass(difficulty) {
+  const map = { trivial: 'diff-trivial', easy: 'diff-easy', medium: 'diff-medium', hard: 'diff-hard', deadly: 'diff-deadly' };
+  return map[(difficulty || '').toLowerCase()] || 'diff-trivial';
+}
+
+function renderEncounterLibrary() {
+  const list = document.getElementById('encounter-library-list');
+  list.innerHTML = '';
+  if (!encounters.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px;">No saved encounters.<br>Load an adventure or build one manually.</div>';
+    return;
+  }
+  encounters.forEach(enc => {
+    const row = document.createElement('div');
+    const isActive = enc.id === activeEncounterId;
+    row.className = 'encounter-item' + (isActive ? ' active' : '');
+    const sourceBadge = enc.source === 'adventure' ? ' [ADV]' : ' [MAN]';
+    const monsterCount = (enc.monsters || []).reduce((s, m) => s + (m.qty || 1), 0);
+    const pcCount = (enc.selectedPcIds || []).length;
+    const diff = enc.difficulty || 'Trivial';
+    const diffClass = getDifficultyBadgeClass(diff);
+    const envTag = enc.environment ? '<span class="env-tag">' + enc.environment + '</span>' : '';
+    row.innerHTML =
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + enc.name + '</strong>' +
+          '<span class="diff-badge ' + diffClass + '">' + diff + '</span>' + envTag +
+        '</div>' +
+        '<div style="color:var(--muted);font-size:11px;">' + sourceBadge + ' — ' + monsterCount + ' creature(s), ' + pcCount + ' PC(s)</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0;">' +
+        '<button class="snd-btn" style="background:#2a4;flex-shrink:0;" data-id="' + enc.id + '" title="Generate Soundscape">🎵</button>' +
+        '<button class="rem-btn" style="background:#500;flex-shrink:0;" data-id="' + enc.id + '" title="Delete">×</button>' +
+      '</div>';
+    row.addEventListener('click', (e) => {
+      if (e.target.classList.contains('rem-btn') || e.target.classList.contains('snd-btn')) return;
+      selectEncounter(enc.id);
+    });
+    row.querySelector('.snd-btn').addEventListener('click', (e) => { e.stopPropagation(); sendToSoundboard(enc); });
+    row.querySelector('.rem-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteEncounter(enc.id); });
+    list.appendChild(row);
+  });
+}
+
+function selectEncounter(id) {
+  const enc = encounters.find(e => e.id === id);
+  if (!enc) return;
+  activeEncounterId = id;
+  encounterPool = (enc.monsters || []).map(m => ({ ...m }));
+  if (enc.selectedPcIds && enc.selectedPcIds.length) {
+    selectedPcIds = new Set(enc.selectedPcIds);
+  } else {
+    selectedPcIds = new Set(partyCache.map(pc => pc.id));
+  }
+  renderEncounterPool();
+  updateDifficultyDisplay();
+  renderPartySelection();
+  renderEncounterLibrary();
+  document.getElementById('encounter-environment').value = enc.environment || '';
+  logRPC('>> ENCOUNTER: Loaded "' + enc.name + '" (' + encounterPool.length + ' group(s), ' + selectedPcIds.size + ' PC(s))');
+}
+
+function createNewEncounter() {
+  const name = prompt('Name for new encounter:', 'New Encounter');
+  if (!name || !name.trim()) return;
+  const uniqueName = makeEncounterNameUnique(name.trim());
+  const id = 'enc_' + Date.now();
+  selectedPcIds = new Set(partyCache.map(pc => pc.id));
+  encounters.push({ id, name: uniqueName, source: 'manual', monsters: [], selectedPcIds: Array.from(selectedPcIds), difficulty: 'Trivial', environment: '', createdAt: Date.now() });
+  activeEncounterId = id;
+  encounterPool = [];
+  renderEncounterPool();
+  updateDifficultyDisplay();
+  renderPartySelection();
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+  logRPC('>> ENCOUNTER: Created new "' + uniqueName + '"');
+}
+
+function saveCurrentEncounter() {
+  const pcIds = Array.from(selectedPcIds);
+  const existing = encounters.find(e => e.id === activeEncounterId);
+  const diff = calculateLocalDifficulty();
+  const env = document.getElementById('encounter-environment').value || '';
+  if (existing) {
+    existing.monsters = encounterPool.map(m => ({ ...m }));
+    existing.selectedPcIds = pcIds;
+    existing.difficulty = diff;
+    existing.environment = env;
+    logRPC('>> ENCOUNTER: Updated "' + existing.name + '" (' + diff + ')');
+  } else {
+    const name = prompt('Save encounter as:', 'Manual Encounter');
+    if (!name || !name.trim()) return;
+    const uniqueName = makeEncounterNameUnique(name.trim());
+    const id = 'enc_' + Date.now();
+    encounters.push({ id, name: uniqueName, source: 'manual', monsters: encounterPool.map(m => ({ ...m })), selectedPcIds: pcIds, difficulty: diff, environment: env, createdAt: Date.now() });
+    activeEncounterId = id;
+    logRPC('>> ENCOUNTER: Saved new "' + uniqueName + '" (' + diff + ')');
+  }
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+}
+
+function deleteEncounter(id) {
+  if (!confirm('Delete this encounter?')) return;
+  encounters = encounters.filter(e => e.id !== id);
+  if (activeEncounterId === id) {
+    activeEncounterId = null;
+    encounterPool = [];
+    selectedPcIds = new Set();
+    renderEncounterPool();
+    updateDifficultyDisplay();
+    renderPartySelection();
+  }
+  renderEncounterLibrary();
+  saveEncountersToStorage();
+  logRPC('>> ENCOUNTER: Deleted encounter');
+}
+
+/* Event listeners */
+document.getElementById('new-encounter-btn').addEventListener('click', createNewEncounter);
+document.getElementById('save-encounter-btn').addEventListener('click', saveCurrentEncounter);
+document.getElementById('clear-pool-btn').addEventListener('click', () => {
+  if (!confirm('Clear all monsters from the current encounter?')) return;
+  encounterPool = [];
+  renderEncounterPool();
+  updateDifficultyDisplay();
+  logRPC('>> ENCOUNTER: Pool cleared');
+});
+
+/* ---------- PARTY SELECTION ---------- */
+function renderPartySelection() {
+  const container = document.getElementById('party-selection');
+  if (!partyCache.length) {
+    container.innerHTML = 'No party data yet.';
+    return;
+  }
+  container.innerHTML = '';
+  partyCache.forEach(pc => {
+    const div = document.createElement('div');
+    div.className = 'party-checkbox';
+    const checked = selectedPcIds.has(pc.id) ? 'checked' : '';
+    div.innerHTML = '<input type="checkbox" ' + checked + ' data-pc-id="' + pc.id + '" style="accent-color:var(--accent);"> <span>' + pc.name + ' (LVL ' + pc.level + ')</span>';
+    div.querySelector('input').addEventListener('change', (e) => {
+      if (e.target.checked) selectedPcIds.add(pc.id);
+      else selectedPcIds.delete(pc.id);
+      updateDifficultyDisplay();
+      logRPC('>> PARTY: ' + (e.target.checked ? 'Included' : 'Excluded') + ' ' + pc.name);
+    });
+    container.appendChild(div);
+  });
+}
+
+function getSelectedPartyMembers() {
+  return partyCache.filter(pc => selectedPcIds.has(pc.id));
+}
+
+/* ---------- DIFFICULTY CALCULATION ---------- */
+function calculateLocalDifficulty() {
+  const selectedParty = getSelectedPartyMembers();
+  if (!selectedParty.length || !encounterPool.length) return 'Trivial';
+  const levels = selectedParty.map(pc => pc.level || 1);
+  const crList = [];
+  encounterPool.forEach(m => {
+    for (let i = 0; i < (m.qty || 1); i++) crList.push(m.cr || '0');
+  });
+  try {
+    const diff = calculateEncounterDifficulty(levels, crList);
+    return diff.difficulty || 'Trivial';
+  } catch (e) {
+    return 'Trivial';
+  }
+}
+
+function updateDifficultyDisplay() {
+  const selectedParty = getSelectedPartyMembers();
+  const diffEasy = document.getElementById('diff-easy');
+  const diffMedium = document.getElementById('diff-medium');
+  const diffHard = document.getElementById('diff-hard');
+  const diffDeadly = document.getElementById('diff-deadly');
+  const meter = document.getElementById('difficulty-meter');
+  const label = document.getElementById('difficulty-label');
+
+  if (!selectedParty.length) {
+    diffEasy.textContent = diffMedium.textContent = diffHard.textContent = diffDeadly.textContent = '–';
+    meter.style.width = '0%';
+    meter.style.background = '#555';
+    label.textContent = 'NO PARTY';
+    label.style.color = 'var(--muted)';
+    return;
+  }
+
+  const levels = selectedParty.map(pc => pc.level || 1);
+  const thresholds = getPartyThresholds(levels);
+  diffEasy.textContent = thresholds.easy.toLocaleString() + ' XP';
+  diffMedium.textContent = thresholds.medium.toLocaleString() + ' XP';
+  diffHard.textContent = thresholds.hard.toLocaleString() + ' XP';
+  diffDeadly.textContent = thresholds.deadly.toLocaleString() + ' XP';
+
+  if (!encounterPool.length) {
+    meter.style.width = '0%';
+    meter.style.background = '#555';
+    label.textContent = 'NO MONSTERS';
+    label.style.color = 'var(--muted)';
+    return;
+  }
+
+  const crList = [];
+  encounterPool.forEach(m => {
+    for (let i = 0; i < (m.qty || 1); i++) crList.push(m.cr || '0');
+  });
+
+  const diff = calculateEncounterDifficulty(levels, crList);
+  label.textContent = diff.difficulty.toUpperCase();
+  label.style.color = diff.color;
+
+  const ratio = thresholds.deadly > 0 ? Math.min((diff.totalXp / thresholds.deadly) * 100, 100) : 0;
+  meter.style.width = ratio + '%';
+  meter.style.background = diff.color;
+  meter.classList.toggle('deadly', diff.difficulty.toLowerCase() === 'deadly');
+}
+
+// DMG XP thresholds by level (Easy, Medium, Hard, Deadly)
+const XP_THRESHOLDS = {
+  1: [25,50,75,100], 2: [50,100,150,200], 3: [75,150,225,400],
+  4: [125,250,375,500], 5: [250,500,750,1100], 6: [300,600,900,1400],
+  7: [350,750,1100,1700], 8: [450,900,1400,2100], 9: [550,1100,1600,2400],
+  10: [600,1200,1900,2800], 11: [800,1600,2400,3600], 12: [1000,2000,3000,4500],
+  13: [1100,2200,3400,5100], 14: [1250,2500,3800,5700], 15: [1400,2800,4300,6400],
+  16: [1600,3200,4800,7200], 17: [2000,3900,5900,8800], 18: [2100,4200,6300,9500],
+  19: [2400,4900,7300,10900], 20: [2800,5700,8500,12700]
+};
+
+// DMG Monster XP by CR
+const MONSTER_XP = {
+  '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700,
+  '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000, '10': 5900,
+  '11': 7200, '12': 8400, '13': 10000, '14': 11500, '15': 13000, '16': 15000,
+  '17': 18000, '18': 20000, '19': 22000, '20': 25000, '21': 33000, '22': 41000,
+  '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000,
+  '29': 135000, '30': 155000
+};
+
+function crToXp(cr) {
+  if (!cr) return 10;
+  let key = String(cr).trim();
+  // Normalize decimal CRs to fractional strings
+  if (key === '0.125') key = '1/8';
+  if (key === '0.25') key = '1/4';
+  if (key === '0.5') key = '1/2';
+  return MONSTER_XP[key] || MONSTER_XP['0'];
+}
+
+function getPartyThresholds(levels) {
+  let easy = 0, medium = 0, hard = 0, deadly = 0;
+  levels.forEach(lvl => {
+    const t = XP_THRESHOLDS[lvl] || XP_THRESHOLDS[1];
+    easy += t[0]; medium += t[1]; hard += t[2]; deadly += t[3];
+  });
+  return { easy, medium, hard, deadly };
+}
+
+function getEncounterMultiplier(monsterCount) {
+  if (monsterCount === 1) return 1;
+  if (monsterCount === 2) return 1.5;
+  if (monsterCount <= 6) return 2;
+  if (monsterCount <= 10) return 2.5;
+  if (monsterCount <= 14) return 3;
+  return 4;
+}
+
+function calculateEncounterDifficulty(partyLevels, monsterCrList) {
+  const thresholds = getPartyThresholds(partyLevels);
+  const monsterCount = monsterCrList.length;
+  const baseXp = monsterCrList.reduce((sum, cr) => sum + crToXp(cr), 0);
+  const multiplier = getEncounterMultiplier(monsterCount);
+  const totalXp = Math.floor(baseXp * multiplier);
+
+  let difficulty = 'Trivial';
+  let color = '#555';
+  if (totalXp >= thresholds.deadly) { difficulty = 'Deadly'; color = '#ff4000'; }
+  else if (totalXp >= thresholds.hard) { difficulty = 'Hard'; color = '#d52'; }
+  else if (totalXp >= thresholds.medium) { difficulty = 'Medium'; color = '#ca3'; }
+  else if (totalXp >= thresholds.easy) { difficulty = 'Easy'; color = '#3a7'; }
+
+  return { difficulty, totalXp, baseXp, multiplier, thresholds, color };
+}
+
+
+/* ---------- PHASE 3: ENCOUNTER BUILDER EXPANSION ---------- */
+
+/* --- Random Encounter Generator --- */
+const ENVIRONMENT_MONSTERS = {
+  Arctic: [
+    {name:'Ice Mephit',cr:'1/2'},{name:'Winter Wolf',cr:'3'},{name:'Yeti',cr:'3'},
+    {name:'Polar Bear',cr:'2'},{name:'Ice Golem',cr:'5'},{name:'Frost Giant',cr:'8'},
+    {name:'Remorhaz',cr:'11'},{name:'White Dragon Wyrmling',cr:'2'},{name:'Young White Dragon',cr:'6'},
+    {name:'Bheur Hag',cr:'7'},{name:'Orc War Chief',cr:'4'},{name:'Wolf',cr:'1/4'}
+  ],
+  Coastal: [
+    {name:'Giant Crab',cr:'1/8'},{name:'Reef Shark',cr:'1/2'},{name:'Sahuagin',cr:'1/2'},
+    {name:'Harpy',cr:'1'},{name:'Merrow',cr:'2'},{name:'Sea Hag',cr:'2'},
+    {name:'Water Elemental',cr:'5'},{name:'Young Bronze Dragon',cr:'8'},{name:'Giant Octopus',cr:'1'},
+    {name:'Plesiosaurus',cr:'2'},{name:'Sahuagin Baron',cr:'5'},{name:'Dragon Turtle',cr:'17'}
+  ],
+  Desert: [
+    {name:'Giant Poisonous Snake',cr:'1/4'},{name:'Fire Snake',cr:'1'},{name:'Giant Hyena',cr:'1'},
+    {name:'Hobgoblin',cr:'1/2'},{name:'Wight',cr:'3'},{name:'Hell Hound',cr:'3'},
+    {name:'Yuan-ti Malison',cr:'3'},{name:'Medusa',cr:'6'},{name:'Young Brass Dragon',cr:'6'},
+    {name:'Purple Worm',cr:'15'},{name:'Mummy Lord',cr:'15'},{name:'Androsphinx',cr:'17'}
+  ],
+  Forest: [
+    {name:'Giant Rat',cr:'1/8'},{name:'Giant Bat',cr:'1/4'},{name:'Wolf',cr:'1/4'},
+    {name:'Giant Spider',cr:'1'},{name:'Hobgoblin',cr:'1/2'},{name:'Worg',cr:'1/2'},
+    {name:'Giant Boar',cr:'2'},{name:'Ogre',cr:'2'},{name:'Hobgoblin Captain',cr:'3'},
+    {name:'Werewolf',cr:'3'},{name:'Young Green Dragon',cr:'8'},{name:'Treant',cr:'9'},
+    {name:'Unicorn',cr:'5'},{name:'Grick',cr:'2'}
+  ],
+  Grassland: [
+    {name:'Giant Weasel',cr:'1/8'},{name:'Giant Badger',cr:'1/4'},{name:'Panther',cr:'1/4'},
+    {name:'Jackalwere',cr:'1/2'},{name:'Lion',cr:'1'},{name:'Giant Eagle',cr:'1'},
+    {name:'Rhinoceros',cr:'2'},{name:'Giant Elk',cr:'2'},{name:'Ankheg',cr:'2'},
+    {name:'Hobgoblin Captain',cr:'3'},{name:'Couatl',cr:'4'},{name:'Elephant',cr:'4'},
+    {name:'Hill Giant',cr:'5'},{name:'Triceratops',cr:'5'},{name:'Tyrannosaurus Rex',cr:'8'}
+  ],
+  Hill: [
+    {name:'Giant Goat',cr:'1/2'},{name:'Giant Owl',cr:'1/4'},{name:'Wolf',cr:'1/4'},
+    {name:'Hobgoblin',cr:'1/2'},{name:'Orc',cr:'1/2'},{name:'Giant Boar',cr:'2'},
+    {name:'Ogre',cr:'2'},{name:'Hippogriff',cr:'1'},{name:'Griffon',cr:'2'},
+    {name:'Troll',cr:'5'},{name:'Ettin',cr:'4'},{name:'Chimera',cr:'6'},
+    {name:'Wyvern',cr:'6'},{name:'Hill Giant',cr:'5'},{name:'Young Copper Dragon',cr:'7'}
+  ],
+  Mountain: [
+    {name:'Giant Goat',cr:'1/2'},{name:'Aarakocra',cr:'1/4'},{name:'Pteranodon',cr:'1/4'},
+    {name:'Griffon',cr:'2'},{name:'Giant Elk',cr:'2'},{name:'Wyvern',cr:'6'},
+    {name:'Bulette',cr:'5'},{name:'Basilisk',cr:'3'},{name:'Manticore',cr:'3'},
+    {name:'Young Silver Dragon',cr:'9'},{name:'Stone Giant',cr:'7'},{name:'Frost Giant',cr:'8'},
+    {name:'Young Red Dragon',cr:'10'},{name:'Fire Giant',cr:'9'},{name:'Roc',cr:'11'}
+  ],
+  Swamp: [
+    {name:'Giant Rat',cr:'1/8'},{name:'Giant Frog',cr:'1/4'},{name:'Constrictor Snake',cr:'1/4'},
+    {name:'Crocodile',cr:'1/2'},{name:'Lizardfolk',cr:'1/2'},{name:'Giant Spider',cr:'1'},
+    {name:'Ghoul',cr:'1'},{name:'Swarm of Insects',cr:'1/2'},{name:"Will-o'-Wisp",cr:'2'},
+    {name:'Ghast',cr:'2'},{name:'Ogre',cr:'2'},{name:'Shambling Mound',cr:'5'},
+    {name:'Young Black Dragon',cr:'7'},{name:'Hydra',cr:'8'},{name:'Froghemoth',cr:'10'}
+  ],
+  Underdark: [
+    {name:'Giant Bat',cr:'1/4'},{name:'Giant Rat',cr:'1/8'},{name:'Giant Centipede',cr:'1/4'},
+    {name:'Giant Spider',cr:'1'},{name:'Scout',cr:'1/2'},{name:'Drow',cr:'1/4'},
+    {name:'Bugbear',cr:'1'},{name:'Deep Gnome',cr:'1/2'},{name:'Carrion Crawler',cr:'2'},
+    {name:'Grell',cr:'3'},{name:'Ochre Jelly',cr:'2'},{name:'Doppelganger',cr:'3'},
+    {name:'Mind Flayer',cr:'7'},{name:'Beholder',cr:'13'},{name:'Aboleth',cr:'10'},
+    {name:'Hook Horror',cr:'3'},{name:'Umber Hulk',cr:'5'}
+  ],
+  Underwater: [
+    {name:'Giant Crab',cr:'1/8'},{name:'Merfolk',cr:'1/4'},{name:'Reef Shark',cr:'1/2'},
+    {name:'Sahuagin',cr:'1/2'},{name:'Giant Octopus',cr:'1'},{name:'Merrow',cr:'2'},
+    {name:'Killer Whale',cr:'3'},{name:'Water Elemental',cr:'5'},{name:'Giant Shark',cr:'5'},
+    {name:'Dragon Turtle',cr:'17'},{name:'Kraken',cr:'23'},{name:'Marid',cr:'11'},
+    {name:'Sea Hag',cr:'2'}
+  ],
+  Urban: [
+    {name:'Rat',cr:'0'},{name:'Cat',cr:'0'},{name:'Commoner',cr:'0'},
+    {name:'Noble',cr:'1/8'},{name:'Guard',cr:'1/8'},{name:'Cultist',cr:'1/8'},
+    {name:'Thug',cr:'1/2'},{name:'Spy',cr:'1'},{name:'Bandit',cr:'1/8'},
+    {name:'Knight',cr:'3'},{name:'Veteran',cr:'3'},{name:'Assassin',cr:'8'},
+    {name:'Gladiator',cr:'5'},{name:'Mage',cr:'6'},{name:'Priest',cr:'2'},
+    {name:'Were-rat',cr:'2'},{name:'Wererat',cr:'2'}
+  ],
+  Dungeon: [
+    {name:'Giant Rat',cr:'1/8'},{name:'Giant Centipede',cr:'1/4'},{name:'Skeleton',cr:'1/4'},
+    {name:'Giant Spider',cr:'1'},{name:'Zombie',cr:'1/4'},{name:'Ghoul',cr:'1'},
+    {name:'Shadow',cr:'1/2'},{name:'Mimic',cr:'2'},{name:'Rust Monster',cr:'1/2'},
+    {name:'Gelatinous Cube',cr:'2'},{name:'Ochre Jelly',cr:'2'},{name:'Carrion Crawler',cr:'2'},
+    {name:'Hell Hound',cr:'3'},{name:'Black Pudding',cr:'4'},{name:'Roper',cr:'5'},
+    {name:'Beholder',cr:'13'},{name:'Lich',cr:'21'}
+  ],
+  Planar: [
+    {name:'Flumph',cr:'1/8'},{name:'Modron',cr:'1/8'},{name:'Abyssal Chicken',cr:'1/4'},
+    {name:'Dretch',cr:'1/4'},{name:'Quasit',cr:'1'},{name:'Mephit',cr:'1/2'},
+    {name:'Hell Hound',cr:'3'},{name:'Succubus',cr:'4'},{name:'Incubus',cr:'4'},
+    {name:'Vrock',cr:'6'},{name:'Hezrou',cr:'8'},{name:'Glabrezu',cr:'9'},
+    {name:'Nalfeshnee',cr:'13'},{name:'Marilith',cr:'16'},{name:'Balor',cr:'19'},
+    {name:'Planetar',cr:'16'},{name:'Solar',cr:'21'}
+  ]
+};
+
+function crToNumber(cr) {
+  if (!cr) return 0;
+  const s = String(cr).trim();
+  if (s === '1/8') return 0.125;
+  if (s === '1/4') return 0.25;
+  if (s === '1/2') return 0.5;
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function generateRandomEncounter() {
+  const env = document.getElementById('random-env').value;
+  const crMin = crToNumber(document.getElementById('random-cr-min').value);
+  const crMax = crToNumber(document.getElementById('random-cr-max').value);
+
+  if (crMin > crMax) {
+    alert('Minimum CR cannot be greater than maximum CR.');
+    return;
+  }
+
+  const candidates = [];
+  const envs = env === 'Any' ? Object.keys(ENVIRONMENT_MONSTERS) : [env];
+  envs.forEach(e => {
+    const list = ENVIRONMENT_MONSTERS[e] || [];
+    list.forEach(m => {
+      const crVal = crToNumber(m.cr);
+      if (crVal >= crMin && crVal <= crMax) candidates.push(m);
+    });
+  });
+
+  if (!candidates.length) {
+    alert('No monsters found for that environment and CR range. Try broadening the search.');
+    return;
+  }
+
+  // Shuffle and pick 1-3 unique monsters
+  const shuffled = candidates.slice().sort(() => Math.random() - 0.5);
+  const count = Math.min(shuffled.length, Math.floor(Math.random() * 3) + 1);
+  const picks = shuffled.slice(0, count);
+
+  logRPC('>> RANDOM ENCOUNTER: Rolling ' + count + ' creature(s) for ' + env + ' (CR ' + crMin + '-' + crMax + ')');
+
+  picks.forEach(m => {
+    addMonsterToPool(m.name, m.cr, null, '');
+  });
+}
+
+document.getElementById('generate-random-btn').addEventListener('click', generateRandomEncounter);
+
+/* --- Loot Generator --- */
+const TREASURE_TABLES = {
+  individual: {
+    '0-4': [
+      { range:[1,30],   coins:'5d6 cp' },
+      { range:[31,60],  coins:'4d6 sp' },
+      { range:[61,70],  coins:'3d6 ep' },
+      { range:[71,95],  coins:'3d6 gp' },
+      { range:[96,100], coins:'1d6 pp' }
+    ],
+    '5-10': [
+      { range:[1,30],   coins:'4d6x100 cp, 1d6x10 ep' },
+      { range:[31,60],  coins:'6d6x10 sp, 2d6x10 gp' },
+      { range:[61,70],  coins:'3d6x10 ep, 2d6x10 gp' },
+      { range:[71,95],  coins:'4d6x10 gp' },
+      { range:[96,100], coins:'2d6x10 gp, 3d6 pp' }
+    ],
+    '11-16': [
+      { range:[1,20],   coins:'4d6x100 sp, 1d6x100 gp' },
+      { range:[21,35],  coins:'1d6x100 ep, 1d6x100 gp' },
+      { range:[36,75],  coins:'2d6x100 gp, 1d6x10 pp' },
+      { range:[76,100], coins:'2d6x100 gp, 2d6x10 pp' }
+    ],
+    '17+': [
+      { range:[1,15],   coins:'2d6x1000 ep, 8d6x100 gp' },
+      { range:[16,55],  coins:'1d6x1000 gp, 1d6x100 pp' },
+      { range:[56,100], coins:'1d6x1000 gp, 2d6x100 pp' }
+    ]
+  },
+  hoard: {
+    '0-4': {
+      coins: '6d6x100 cp, 3d6x100 sp, 2d6x10 gp',
+      goods: [
+        { range:[1,5],    type:'none' },
+        { range:[6,16],   type:'gems', count:'1d6', value:10 },
+        { range:[17,26],  type:'art', count:'1d4', value:25 },
+        { range:[27,36],  type:'gems', count:'1d6', value:50 },
+        { range:[37,44],  type:'art', count:'1d4', value:75 },
+        { range:[45,52],  type:'gems', count:'1d6', value:100 },
+        { range:[53,60],  type:'art', count:'1d4', value:250 },
+        { range:[61,65],  type:'gems', count:'1d6', value:500 },
+        { range:[66,70],  type:'art', count:'1d4', value:750 },
+        { range:[71,75],  type:'gems', count:'1d6', value:1000 },
+        { range:[76,80],  type:'art', count:'1d4', value:1500 },
+        { range:[81,85],  type:'gems', count:'1d6', value:2000 },
+        { range:[86,90],  type:'art', count:'1d4', value:2500 },
+        { range:[91,95],  type:'gems', count:'1d6', value:5000 },
+        { range:[96,100], type:'art', count:'1d4', value:7500 }
+      ],
+      magic: [
+        { range:[1,5],    table:'none' },
+        { range:[6,22],   table:'A', count:'1d4' },
+        { range:[23,35],  table:'A', count:'1d6' },
+        { range:[36,45],  table:'B', count:'1d4' },
+        { range:[46,55],  table:'B', count:'1d6' },
+        { range:[56,65],  table:'C', count:'1d4' },
+        { range:[66,75],  table:'C', count:'1d6' },
+        { range:[76,80],  table:'D', count:'1d4' },
+        { range:[81,88],  table:'F', count:'1d4' },
+        { range:[89,92],  table:'G', count:'1d4' },
+        { range:[93,95],  table:'H', count:'1d4' },
+        { range:[96,98],  table:'H', count:'1d6' },
+        { range:[99,100], table:'I', count:'1d4' }
+      ]
+    },
+    '5-10': {
+      coins: '2d6x100 cp, 2d6x1000 sp, 6d6x100 gp, 3d6x10 pp',
+      goods: [
+        { range:[1,4],    type:'none' },
+        { range:[5,10],   type:'gems', count:'2d4', value:25 },
+        { range:[11,16],  type:'art', count:'3d6', value:250 },
+        { range:[17,22],  type:'gems', count:'3d6', value:50 },
+        { range:[23,28],  type:'art', count:'2d4', value:750 },
+        { range:[29,32],  type:'gems', count:'3d6', value:100 },
+        { range:[33,36],  type:'art', count:'2d4', value:1500 },
+        { range:[37,40],  type:'gems', count:'3d6', value:250 },
+        { range:[41,44],  type:'art', count:'2d4', value:2500 },
+        { range:[45,49],  type:'gems', count:'3d6', value:500 },
+        { range:[50,54],  type:'art', count:'2d4', value:3500 },
+        { range:[55,59],  type:'gems', count:'3d6', value:1000 },
+        { range:[60,63],  type:'art', count:'2d4', value:4500 },
+        { range:[64,66],  type:'gems', count:'3d6', value:2500 },
+        { range:[67,69],  type:'art', count:'2d4', value:5500 },
+        { range:[70,72],  type:'gems', count:'3d6', value:5000 },
+        { range:[73,74],  type:'art', count:'2d4', value:6500 },
+        { range:[75,76],  type:'gems', count:'3d6', value:7500 },
+        { range:[77,78],  type:'art', count:'2d4', value:7500 },
+        { range:[79,80],  type:'gems', count:'3d6', value:10000 },
+        { range:[81,100], type:'art', count:'2d4', value:'roll' }
+      ],
+      magic: [
+        { range:[1,4],    table:'none' },
+        { range:[5,22],   table:'A', count:'1d6' },
+        { range:[23,38],  table:'B', count:'1d4' },
+        { range:[39,52],  table:'C', count:'1d4' },
+        { range:[53,64],  table:'D', count:'1d4' },
+        { range:[65,74],  table:'F', count:'1d4' },
+        { range:[75,82],  table:'G', count:'1d4' },
+        { range:[83,88],  table:'H', count:'1d4' },
+        { range:[89,92],  table:'H', count:'1d6' },
+        { range:[93,96],  table:'I', count:'1d4' },
+        { range:[97,98],  table:'I', count:'1d6' },
+        { range:[99,100], table:'I', count:'1d8' }
+      ]
+    },
+    '11-16': {
+      coins: '4d6x1000 gp, 5d6x100 pp',
+      goods: [
+        { range:[1,3],    type:'none' },
+        { range:[4,6],    type:'gems', count:'2d4', value:250 },
+        { range:[7,9],    type:'art', count:'2d4', value:750 },
+        { range:[10,12],  type:'gems', count:'2d4', value:1000 },
+        { range:[13,15],  type:'art', count:'2d4', value:1500 },
+        { range:[16,18],  type:'gems', count:'2d4', value:2500 },
+        { range:[19,20],  type:'art', count:'2d4', value:2500 },
+        { range:[21,23],  type:'gems', count:'2d4', value:5000 },
+        { range:[24,26],  type:'art', count:'2d4', value:3500 },
+        { range:[27,29],  type:'gems', count:'2d4', value:7500 },
+        { range:[30,32],  type:'art', count:'2d4', value:4500 },
+        { range:[33,35],  type:'gems', count:'2d4', value:10000 },
+        { range:[36,38],  type:'art', count:'2d4', value:5500 },
+        { range:[39,41],  type:'gems', count:'2d4', value:15000 },
+        { range:[42,100], type:'art', count:'2d4', value:6500 }
+      ],
+      magic: [
+        { range:[1,3],    table:'none' },
+        { range:[4,6],    table:'C', count:'1d6' },
+        { range:[7,9],    table:'D', count:'1d4' },
+        { range:[10,12],  table:'E', count:'1d4' },
+        { range:[13,15],  table:'F', count:'1d4' },
+        { range:[16,20],  table:'G', count:'1d4' },
+        { range:[21,24],  table:'H', count:'1d4' },
+        { range:[25,28],  table:'H', count:'1d6' },
+        { range:[29,32],  table:'I', count:'1d4' },
+        { range:[33,36],  table:'I', count:'1d6' },
+        { range:[37,100], table:'I', count:'1d8' }
+      ]
+    },
+    '17+': {
+      coins: '12d6x1000 gp, 8d6x1000 pp',
+      goods: [
+        { range:[1,2],    type:'none' },
+        { range:[3,5],    type:'gems', count:'3d6', value:1000 },
+        { range:[6,8],    type:'art', count:'1d10', value:2500 },
+        { range:[9,11],   type:'gems', count:'3d6', value:5000 },
+        { range:[12,14],  type:'art', count:'1d10', value:7500 },
+        { range:[15,17],  type:'gems', count:'3d6', value:10000 },
+        { range:[18,20],  type:'art', count:'1d10', value:10000 },
+        { range:[21,23],  type:'gems', count:'3d6', value:25000 },
+        { range:[24,26],  type:'art', count:'1d10', value:15000 },
+        { range:[27,29],  type:'gems', count:'3d6', value:50000 },
+        { range:[30,100], type:'art', count:'1d10', value:25000 }
+      ],
+      magic: [
+        { range:[1,2],    table:'none' },
+        { range:[3,5],    table:'C', count:'1d8' },
+        { range:[6,8],    table:'D', count:'1d6' },
+        { range:[9,11],   table:'E', count:'1d6' },
+        { range:[12,14],  table:'G', count:'1d6' },
+        { range:[15,22],  table:'H', count:'1d6' },
+        { range:[23,30],  table:'I', count:'1d6' },
+        { range:[31,100], table:'I', count:'1d8' }
+      ]
+    }
+  }
+};
+
+const MAGIC_ITEMS = {
+  A: ['Potion of climbing','Potion of healing','Spell scroll (cantrip)','Spell scroll (1st level)','Bag of holding','Driftglobe'],
+  B: ['Potion of greater healing','Potion of fire breath','Potion of resistance','Ammunition +1','Potion of animal friendship','Potion of hill giant strength','Potion of growth','Potion of water breathing','Spell scroll (2nd level)','Spell scroll (3rd level)','Bag of holding',"Keoghtom's ointment",'Oil of slipperiness','Dust of disappearance','Dust of dryness','Dust of sneezing and choking','Elemental gem','Philter of love','Alchemy jug','Cap of water breathing','Cloak of the manta ray','Decanter of endless water','Eversmoking bottle','Eyes of minute seeing','Goggles of night','Helm of comprehending languages','Immovable rod','Lantern of revealing',"Mariner's armor",'Mithral armor','Potion of poison','Ring of swimming','Robe of useful items','Rope of climbing','Saddle of the cavalier','Wand of magic detection','Wand of secrets'],
+  C: ['Potion of superior healing','Spell scroll (4th level)','Ammunition +2','Potion of maximum healing','Potion of heroism','Potion of invulnerability','Potion of mind reading','Oil of etherealness',"Quaal's feather token",'Scroll of protection','Bag of beans','Chime of opening','Necklace of fireballs','Periapt of health','Sending stones','Adamantine armor','Amulet of proof against detection and location','Boots of elvenkind','Boots of striding and springing','Bracers of archery','Brooch of shielding','Broom of flying','Circlet of blasting','Cloak of elvenkind','Cloak of protection','Deck of illusions','Eversmoking bottle','Eyes of charming','Eyes of the eagle','Figurine of wondrous power (silver raven)','Gauntlets of ogre power','Gem of brightness','Gloves of missile snaring','Gloves of swimming and climbing','Gloves of thievery','Hat of disguise','Headband of intellect','Helm of telepathy','Horseshoes of speed','Horseshoes of a zephyr','Instant fortress','Ioun stone (awareness)','Ioun stone (protection)','Ioun stone (reserve)','Javelin of lightning','Medallion of thoughts','Pearl of power','Periapt of wound closure','Pipes of haunting','Pipes of the sewers','Ring of jumping','Ring of mind shielding','Ring of warmth','Ring of water walking','Robe of eyes','Rod of the pact keeper','Scarab of protection','Shield +1','Staff of the adder','Staff of the python','Stone of good luck','Sword of vengeance','Trident of fish command','Wand of the war mage +1','Wand of web','Weapon +1'],
+  D: ['Potion of supreme healing','Potion of invisibility','Potion of speed','Potion of flying','Spell scroll (5th level)','Ammunition +3','Oil of sharpness',"Quaal's feather token",'Scroll of protection','Bag of devouring','Bead of force','Chime of opening','Necklace of prayer beads','Periapt of proof against poison','Portable hole','Rope of entanglement','Adamantine armor','Amulet of health','Armor of resistance','Armor of vulnerability','Arrow-catching shield','Belt of dwarvenkind','Belt of hill giant strength','Boots of levitation','Boots of speed','Bowl of commanding water elementals','Bracers of defense','Brazier of commanding fire elementals','Cape of the mountebank','Censer of controlling air elementals','Crystal ball','Cube of force','Dagger of venom','Dimensional shackles','Dragon slayer','Elven chain','Flame tongue','Gem of seeing','Giant slayer','Glamoured studded leather','Helm of teleportation','Horn of blasting','Horn of Valhalla','Horseshoes of a zephyr','Instant fortress','Ioun stone (absorption)','Ioun stone (agility)','Ioun stone (fortitude)','Ioun stone (insight)','Ioun stone (intellect)','Ioun stone (leadership)','Ioun stone (strength)','Iron bands of Bilarro','Mace of disruption','Mace of smiting','Mace of terror','Mantle of spell resistance','Necklace of fireballs','Periapt of proof against poison','Ring of animal influence','Ring of evasion','Ring of feather falling','Ring of free action','Ring of protection','Ring of resistance','Ring of spell storing','Ring of the ram','Ring of X-ray vision','Robe of scintillating colors','Robe of stars','Rod of absorption','Rod of alertness','Rod of security','Rod of the pact keeper +2','Shield +2','Shield of missile attraction','Staff of charming','Staff of healing','Staff of swarming insects','Staff of the woodlands','Staff of withering','Stone of controlling earth elementals','Sun blade','Sword of life stealing','Sword of wounding','Sword of sharpnes','Tentacle rod','Vicious weapon','Wand of binding','Wand of enemy detection','Wand of fear','Wand of fireballs','Wand of lightning bolts','Wand of paralysis','Wand of the war mage +2','Wand of wonder','Weapon +2','Wings of flying'],
+  E: ['Spell scroll (6th level)','Spell scroll (7th level)','Ammunition +3','Oil of sharpness','Potion of giant strength (frost giant)','Potion of invulnerability','Crystal ball','Deck of illusions','Horn of Valhalla','Manual of bodily health','Manual of gainful exercise','Manual of golems','Manual of quickness of action','Mirror of life trapping','Ring of djinni summoning','Ring of elemental command','Ring of invisibility','Ring of spell turning','Rod of lordly might','Rod of the pact keeper +3','Scarab of protection','Staff of the magi','Sword of answering','Tome of clear thought','Tome of leadership and influence','Tome of understanding','Wand of the war mage +3','Weapon +3'],
+  F: ['Potion of giant strength (stone giant)','Potion of heroism (superior)','Potion of supreme healing','Spell scroll (8th level)','Spell scroll (9th level)','Apparatus of Kwalish','Armor of invulnerability','Belt of cloud giant strength','Belt of storm giant strength','Cloak of arachnida','Crystal ball of true seeing','Cube of force','Deck of many things','Defender','Hammer of thunderbolts','Holy avenger','Horn of Valhalla (iron)','Instrument of the bards (Anstruth harp)','Ioun stone (greater absorption)','Ioun stone (mastery)','Ioun stone (regeneration)','Iron flask','Luck blade','Plate armor of etherealness','Ring of air elemental command','Ring of earth elemental command','Ring of fire elemental command','Ring of water elemental command','Ring of three wishes','Robe of the archmagi','Scarab of protection','Sovereign glue','Sphere of annihilation','Staff of the magi','Sword of sharpness','Talisman of the sphere','Tome of the stilled tongue','Trident of fish command','Universal solvent','Well of many worlds'],
+  G: ['Candle of invocation','Plate armor of resistance','Ring of invisibility','Ring of regeneration','Ring of telekinesis','Robe of scintillating colors','Robe of stars','Rod of absorption','Rod of alertness','Rod of security','Scarab of protection','Staff of the magi','Sword of answering','Tome of clear thought','Tome of leadership and influence','Tome of understanding','Wand of the war mage +3','Weapon +3'],
+  H: ['Armor of resistance (plate)','Armor of invulnerability','Belt of storm giant strength','Cloak of arachnida','Crystal ball of true seeing','Defender','Hammer of thunderbolts','Holy avenger','Instrument of the bards (Ollamh harp)','Ioun stone (greater absorption)','Ioun stone (mastery)','Ioun stone (regeneration)','Iron flask','Luck blade','Plate armor of etherealness','Ring of djinni summoning','Ring of elemental command','Ring of invisibility','Ring of spell turning','Ring of three wishes','Robe of the archmagi','Scarab of protection','Sovereign glue','Sphere of annihilation','Staff of the magi','Sword of answering','Talisman of the sphere','Tome of the stilled tongue','Universal solvent','Well of many worlds'],
+  I: ['Defender','Hammer of thunderbolts','Holy avenger','Instrument of the bards (Ollamh harp)','Ioun stone (greater absorption)','Ioun stone (mastery)','Ioun stone (regeneration)','Iron flask','Luck blade','Plate armor of etherealness','Ring of djinni summoning','Ring of elemental command','Ring of invisibility','Ring of spell turning','Ring of three wishes','Robe of the archmagi','Scarab of protection','Sovereign glue','Sphere of annihilation','Staff of the magi','Sword of answering','Talisman of the sphere','Tome of the stilled tongue','Universal solvent','Well of many worlds']
+};
+
+function rollOnTable(tableName, countExpr) {
+  const count = parseDiceExpression(countExpr);
+  const totalRolls = rollDice(count.count, count.sides) + (count.bonus || 0);
+  const items = [];
+  const table = MAGIC_ITEMS[tableName] || [];
+  if (!table.length) return [];
+  for (let i = 0; i < totalRolls; i++) {
+    items.push(table[Math.floor(Math.random() * table.length)]);
+  }
+  return items;
+}
+
+function rollPercentile() {
+  return Math.floor(Math.random() * 100) + 1;
+}
+
+function rollCoins(expr) {
+  // Parse expressions like "6d6x100 cp" or "3d6 gp"
+  const parts = expr.split(',').map(s => s.trim());
+  const results = [];
+  parts.forEach(part => {
+    const match = part.match(/^(\d+)d(\d+)(?:x(\d+))?\s*(cp|sp|ep|gp|pp)$/i);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      const sides = parseInt(match[2], 10);
+      const mult = parseInt(match[3] || '1', 10);
+      const type = match[4].toLowerCase();
+      const val = rollDice(n, sides) * mult;
+      results.push({ amount: val, type });
+    }
+  });
+  return results;
+}
+
+function pickFromRanges(ranges, roll) {
+  for (const entry of ranges) {
+    if (roll >= entry.range[0] && roll <= entry.range[1]) return entry;
+  }
+  return ranges[ranges.length - 1];
+}
+
+function generateLoot() {
+  const tier = document.getElementById('loot-cr-tier').value;
+  const type = document.getElementById('loot-type').value;
+  const container = document.getElementById('loot-results');
+  container.innerHTML = '';
+
+  if (type === 'individual') {
+    const table = TREASURE_TABLES.individual[tier];
+    if (!table) { container.innerHTML = '<div style="color:#c00;">No table for this tier.</div>'; return; }
+    const roll = rollPercentile();
+    const entry = pickFromRanges(table, roll);
+    const coins = rollCoins(entry.coins);
+    let html = '<div class="loot-result-group"><h4>Individual Treasure (CR ' + tier + ')</h4>';
+    html += '<div class="loot-line">Rolled ' + roll + ' on d100</div>';
+    coins.forEach(c => {
+      html += '<div class="loot-line coin">' + c.amount.toLocaleString() + ' ' + c.type.toUpperCase() + '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+    logRPC('>> LOOT: Individual CR ' + tier + ' -> ' + coins.map(c => c.amount + ' ' + c.type).join(', '));
+    return;
+  }
+
+  // Hoard
+  const hoard = TREASURE_TABLES.hoard[tier];
+  if (!hoard) { container.innerHTML = '<div style="color:#c00;">No hoard table for this tier.</div>'; return; }
+
+  let html = '<div class="loot-result-group"><h4>Treasure Hoard (CR ' + tier + ')</h4>';
+
+  // Coins
+  const coins = rollCoins(hoard.coins);
+  coins.forEach(c => {
+    html += '<div class="loot-line coin">' + c.amount.toLocaleString() + ' ' + c.type.toUpperCase() + '</div>';
+  });
+
+  // Goods
+  const goodsRoll = rollPercentile();
+  const goodsEntry = pickFromRanges(hoard.goods, goodsRoll);
+  if (goodsEntry.type !== 'none') {
+    const count = parseDiceExpression(goodsEntry.count);
+    const total = rollDice(count.count, count.sides) + (count.bonus || 0);
+    const value = goodsEntry.value === 'roll' ? 'varied' : goodsEntry.value + ' gp each';
+    html += '<div class="loot-line gem">' + total + ' ' + goodsEntry.type + ' (' + value + ')</div>';
+  }
+
+  // Magic items
+  const magicRoll = rollPercentile();
+  const magicEntry = pickFromRanges(hoard.magic, magicRoll);
+  if (magicEntry.table !== 'none') {
+    const items = rollOnTable(magicEntry.table, magicEntry.count);
+    if (items.length) {
+      html += '<div style="margin-top:6px;font-weight:800;color:var(--accent);">Magic Items:</div>';
+      items.forEach(item => {
+        html += '<div class="loot-line magic">• ' + item + '</div>';
+      });
+    }
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  logRPC('>> LOOT: Hoard CR ' + tier + ' generated');
+}
+
+function openLootModal() {
+  document.getElementById('loot-modal-overlay').classList.add('active');
+}
+function closeLootModal() {
+  document.getElementById('loot-modal-overlay').classList.remove('active');
+}
+
+/* --- Fullscreen Quick‑Ref --- */
+function toggleFullscreenQR() {
+  const overlay = document.getElementById('fullscreen-qr-overlay');
+  const fsContent = document.getElementById('fullscreen-qr-content');
+  const src = document.getElementById('qr-content');
+  if (overlay.classList.contains('active')) {
+    overlay.classList.remove('active');
+    fsContent.innerHTML = '';
+  } else {
+    if (src.style.display === 'none') return;
+    fsContent.innerHTML = src.innerHTML;
+    overlay.classList.add('active');
+  }
+}
+/* ---------- END PHASE 3 ---------- */
+
+/* ---------- MONSTER SEARCH (D&D Beyond MCP) ---------- */
+let monsterSearchResults = [];
+
+async function searchMonsters() {
+  const query = document.getElementById('monster-search').value.trim();
+  const crFilter = document.getElementById('monster-cr-filter').value;
+  const resultsDiv = document.getElementById('monster-search-results');
+  resultsDiv.innerHTML = '<div style="color:var(--muted);padding:4px;">Searching...</div>';
+
+  try {
+    const params = { name: query };
+    if (crFilter) params.cr = crFilter;
+    const results = await apiPost('/api/search-monsters', params);
+    monsterSearchResults = results.results || [];
+    renderMonsterSearchResults();
+  } catch (e) {
+    resultsDiv.innerHTML = '<div style="color:#c00;padding:4px;font-size:11px;">Search failed: ' + e.message + '</div>';
+    logRPC('>> MONSTER SEARCH ERROR: ' + e.message);
+  }
+}
+
+function renderMonsterSearchResults() {
+  const resultsDiv = document.getElementById('monster-search-results');
+  resultsDiv.innerHTML = '';
+  if (!monsterSearchResults.length) {
+    resultsDiv.innerHTML = '<div style="color:var(--muted);padding:4px;font-size:11px;">No results. Try a broader search.</div>';
+    return;
+  }
+  monsterSearchResults.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'monster-search-result';
+    const editionBadge = m.edition === '5.5E' ? '<span class="badge" style="background:#a4c;background-color:oklch(60% 0.12 300);color:#fff;">5.5E</span>' : (m.edition === '5E' ? '<span class="badge" style="background:#48c;background-color:oklch(55% 0.1 250);color:#fff;">5E</span>' : '');
+    row.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<div style="display:flex;align-items:center;gap:4px;"><strong>' + m.name + '</strong>' + editionBadge + '<span class="cr-tag">CR ' + (m.cr || '?') + '</span></div>' +
+        '<button class="add-btn" style="background:#2a4;color:#fff;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;" data-name="' + m.name + '" data-cr="' + (m.cr || '?') + '" data-id="' + (m.id || '') + '" data-edition="' + (m.edition || '') + '">+ ADD</button>' +
+      '</div>' +
+      '<div class="cr-tag">' + (m.type || '') + (m.size ? ' • ' + m.size : '') + (m.source ? ' • ' + m.source : '') + '</div>';
+    resultsDiv.appendChild(row);
+  });
+
+  resultsDiv.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = '...';
+      await addMonsterToPool(btn.dataset.name, btn.dataset.cr, btn.dataset.id, btn.dataset.edition);
+      btn.disabled = false;
+      btn.textContent = '+ ADD';
+    });
+  });
+}
+
+document.getElementById('search-monsters-btn').addEventListener('click', searchMonsters);
+document.getElementById('monster-search').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') searchMonsters();
+});
+
+/* ---------- ADDING MONSTERS ---------- */
+async function addMonsterToPool(name, cr, ddbId, edition) {
+  const id = 'm' + Date.now() + Math.floor(Math.random() * 1000);
+  const entry = { id, name, cr: cr || '?', qty: 1, variant: 'Standard', hp: null, ac: 10, edition: edition || '' };
+
+  try {
+    const result = await apiPost('/api/resolve-monster', { name, ddbId, statBlock: null });
+    if (result && result.found) {
+      entry.hp = result.hp || 20;
+      entry.maxHp = result.maxHp || entry.hp;
+      entry.ac = result.ac || 10;
+      entry.source = result.source;
+      entry.edition = result.edition || entry.edition;
+      // Rich tactical data
+      entry.actions = result.actions || '';
+      entry.bonusActions = result.bonusActions || '';
+      entry.legendary = result.legendary || '';
+      entry.mythic = result.mythic || '';
+      entry.reactions = result.reactions || '';
+      entry.special = result.special || '';
+      entry.stats = result.stats || {};
+      entry.size = result.size || '';
+      entry.type = result.type || '';
+      entry.alignment = result.alignment || '';
+      entry.acDesc = result.acDesc || '';
+      entry.hpDice = result.hpDice || '';
+      entry.xp = result.xp || 0;
+      entry.movements = result.movements || [];
+      entry.savingThrows = result.savingThrows || [];
+      entry.skillsHtml = result.skillsHtml || '';
+      entry.senses = result.senses || [];
+      entry.passivePerception = result.passivePerception || 0;
+      entry.languages = result.languages || '';
+      entry.avatarUrl = result.avatarUrl || '';
+      entry.damageResistances = result.damageResistances || [];
+      entry.damageImmunities = result.damageImmunities || [];
+      entry.damageVulnerabilities = result.damageVulnerabilities || [];
+      entry.conditionImmunities = result.conditionImmunities || [];
+      entry.lairActions = result.lairActions || '';
+      entry.regionalEffects = result.regionalEffects || '';
+      logRPC('>> MONSTER: Resolved "' + name + '" from ' + result.source + ' (' + entry.edition + ', HP ' + entry.hp + ', AC ' + entry.ac + ', CR ' + entry.cr + ')');
+    }
+  } catch (e) {
+    // Silently fail
+  }
+
+  encounterPool.push(entry);
+  renderEncounterPool();
+  updateDifficultyDisplay();
+  logRPC('>> CALL encounter:add_monster {"name":"' + name + '","cr":"' + cr + '"} -> SUCCESS');
+}
+
+function renderEncounterPool() {
+  const pool = document.getElementById('encounter-pool');
+  pool.innerHTML = '';
+  if (!encounterPool.length) {
+    pool.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px;text-align:center;">No monsters in encounter.<br>Use the search panel to add creatures.</div>';
+    return;
+  }
+  encounterPool.forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'monster-card' + (idx === selectedMonsterIdx ? ' selected' : '');
+    row.dataset.idx = idx;
+    const hpText = m.maxHp ? m.hp + '/' + m.maxHp + ' HP' : (m.variant === 'Minion' ? '1 HP' : '—');
+    const acText = m.ac ? 'AC ' + m.ac : '';
+    const xpEach = crToXp(m.cr);
+    const totalXp = xpEach * (m.qty || 1);
+    const sourceBadge = m.source === 'ddb' ? '<span class="badge badge-ddb">★ DDB</span>' : (m.source === 'homebrew' ? '<span class="badge badge-homebrew">🏠 HB</span>' : '');
+    const editionBadge = m.edition === '5.5E' ? '<span class="badge" style="background:oklch(60% 0.12 300);color:#fff;font-size:10px;">5.5E</span>' : (m.edition === '5E' ? '<span class="badge" style="background:oklch(55% 0.1 250);color:#fff;font-size:10px;">5E</span>' : '');
+    row.innerHTML =
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' +
+          '<strong>' + m.name + '</strong>' + editionBadge + sourceBadge +
+          '<span class="badge badge-xp">' + totalXp + ' XP</span>' +
+        '</div>' +
+        '<div style="color:var(--muted);font-size:11px;">' +
+          'CR ' + m.cr + (acText ? ' • ' + acText : '') + ' • ' + hpText +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
+        '<button class="dec-btn" style="background:#222;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">–</button>' +
+        '<span class="qty" style="font-weight:800;min-width:18px;text-align:center;">' + m.qty + '</span>' +
+        '<button class="inc-btn" style="background:#222;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">+</button>' +
+        '<button class="var-btn" style="background:#222;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">' + m.variant + '</button>' +
+        '<button class="rem-btn" style="background:#500;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">×</button>' +
+      '</div>';
+    pool.appendChild(row);
+  });
+
+  pool.querySelectorAll('.monster-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return; // ignore button clicks
+      const idx = Number(card.dataset.idx);
+      showMonsterDetail(idx);
+    });
+  });
+  pool.querySelectorAll('.dec-btn').forEach(btn => btn.addEventListener('click', () => adjustQty(btn, -1)));
+  pool.querySelectorAll('.inc-btn').forEach(btn => btn.addEventListener('click', () => adjustQty(btn, 1)));
+  pool.querySelectorAll('.var-btn').forEach(btn => btn.addEventListener('click', () => cycleVariant(btn)));
+  pool.querySelectorAll('.rem-btn').forEach(btn => btn.addEventListener('click', () => removeMonster(btn)));
+}
+
+function adjustQty(btn, delta) {
+  const row = btn.closest('.monster-card');
+  const idx = Number(row.dataset.idx);
+  if (encounterPool[idx]) {
+    encounterPool[idx].qty = Math.max(1, encounterPool[idx].qty + delta);
+    renderEncounterPool();
+    updateDifficultyDisplay();
+  }
+}
+
+function cycleVariant(btn) {
+  const variants = ['Standard', 'Minion', 'Boss'];
+  const row = btn.closest('.monster-card');
+  const idx = Number(row.dataset.idx);
+  if (!encounterPool[idx]) return;
+  const cur = encounterPool[idx].variant;
+  const next = variants[(variants.indexOf(cur) + 1) % 3];
+  encounterPool[idx].variant = next;
+  if (next === 'Minion') { encounterPool[idx].hp = 1; encounterPool[idx].maxHp = 1; }
+  renderEncounterPool();
+  logRPC('>> CALL encounter:set_variant {"idx":' + idx + ',"variant":"' + next + '"} -> SUCCESS');
+}
+
+function removeMonster(btn) {
+  const row = btn.closest('.monster-card');
+  const idx = Number(row.dataset.idx);
+  const name = encounterPool[idx]?.name || '';
+  encounterPool.splice(idx, 1);
+  if (selectedMonsterIdx === idx) {
+    selectedMonsterIdx = -1;
+    const container = document.getElementById('qr-content');
+    const placeholder = document.getElementById('qr-placeholder');
+    if (container) container.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+  } else if (selectedMonsterIdx > idx) {
+    selectedMonsterIdx--;
+  }
+  renderEncounterPool();
+  updateDifficultyDisplay();
+  logRPC('>> CALL encounter:remove_monster {"name":"' + name + '"} -> SUCCESS');
+}
+
+/* ---------- COMBAT ENGAGEMENT ---------- */
+function initiativeDexMod(entry) {
+  if (entry.kind === 'npc' && entry.stats && entry.stats.DEX) {
+    return Math.floor((entry.stats.DEX - 10) / 2);
+  }
+  // PCs don't have stats stored here; DM enters initiative manually
+  return 0;
+}
+
+function rollD20() {
+  return Math.floor(Math.random() * 20) + 1;
+}
+
+function initiateEngagement() {
+  if (!encounterPool.length) {
+    alert('Add monsters to the encounter before starting combat.');
+    return;
+  }
+  // Build initiative entry list
+  initiativeOrder = [];
+  const selectedParty = partyCache.filter(pc => selectedPcIds.has(pc.id));
+  if (selectedParty.length) {
+    selectedParty.forEach(pc => initiativeOrder.push({
+      kind: 'pc', id: pc.id, name: pc.name, ac: pc.ac, hp: pc.hp, maxHp: pc.maxHp,
+      tempHp: pc.tempHp || 0, conditions: pc.conditions || [], reactionUsed: false
+    }));
+  }
+  encounterPool.forEach(m => {
+    for (let i = 0; i < m.qty; i++) {
+      const npcAc = m.ac || 10;
+      const npcHp = m.maxHp || (m.variant === 'Minion' ? 1 : 20);
+      const hasLegendary = !!(m.legendary && m.legendary.trim().length);
+      initiativeOrder.push({
+        kind: 'npc', id: m.id + '_' + i,
+        name: m.name + (m.qty > 1 ? ' #' + (i+1) : ''),
+        ac: npcAc, hp: npcHp, maxHp: npcHp, variant: m.variant,
+        tempHp: 0, conditions: [], reactionUsed: false,
+        legendaryResistances: hasLegendary ? 3 : null,
+        lairActions: m.lairActions || '', regionalEffects: m.regionalEffects || '',
+        actions: m.actions || '', bonusActions: m.bonusActions || '',
+        legendary: m.legendary || '', mythic: m.mythic || '',
+        reactions: m.reactions || '', special: m.special || '',
+        stats: m.stats || {}, size: m.size || '', type: m.type || '',
+        alignment: m.alignment || '', acDesc: m.acDesc || '', hpDice: m.hpDice || '',
+        cr: m.cr || '', xp: m.xp || 0, movements: m.movements || [],
+        savingThrows: m.savingThrows || [], skillsHtml: m.skillsHtml || '',
+        senses: m.senses || [], passivePerception: m.passivePerception || 0,
+        languages: m.languages || '', edition: m.edition || '', source: m.source || '',
+        avatarUrl: m.avatarUrl || '',
+        damageResistances: m.damageResistances || [],
+        damageImmunities: m.damageImmunities || [],
+        damageVulnerabilities: m.damageVulnerabilities || [],
+        conditionImmunities: m.conditionImmunities || []
+      });
+    }
+  });
+  showInitiativeEntry();
+}
+
+function showInitiativeEntry() {
+  document.getElementById('staging-mode').style.display = 'none';
+  document.getElementById('initiative-entry').style.display = 'block';
+  const list = document.getElementById('initiative-list');
+  list.innerHTML = '';
+  // Bulk roll button
+  const bulkBtn = document.createElement('button');
+  bulkBtn.className = 'button secondary';
+  bulkBtn.textContent = '🎲 ROLL ALL NPCs';
+  bulkBtn.style.width = 'auto';
+  bulkBtn.style.marginBottom = '8px';
+  bulkBtn.addEventListener('click', () => {
+    list.querySelectorAll('.roll-btn').forEach(btn => btn.click());
+  });
+  list.appendChild(bulkBtn);
+
+  initiativeOrder.forEach((ent, i) => {
+    const row = document.createElement('div');
+    row.className = 'init-row';
+    row.dataset.idx = i;
+    row.draggable = true;
+    const dexMod = initiativeDexMod(ent);
+    const dexText = ent.kind === 'npc' && dexMod !== 0 ? ' (DEX ' + (dexMod >= 0 ? '+' : '') + dexMod + ')' : '';
+    const isNpc = ent.kind === 'npc';
+    row.innerHTML =
+      '<div class="name">' + ent.name + '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px;">' +
+        '<label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:2px;cursor:pointer;">' +
+          '<input type="checkbox" class="adv-check" data-idx="' + i + '" style="accent-color:var(--accent);"> Adv' +
+        '</label>' +
+        (isNpc ? '<button class="roll-btn" data-idx="' + i + '" title="Roll 1d20 + DEX modifier">🎲 Roll' + dexText + '</button>' : '') +
+        '<input class="init-input" type="number" data-idx="' + i + '" placeholder="Init" value="" />' +
+      '</div>';
+    list.appendChild(row);
+  });
+
+  // Roll handlers with advantage
+  list.querySelectorAll('.roll-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      const ent = initiativeOrder[idx];
+      const advCheck = list.querySelector('.adv-check[data-idx="' + idx + '"');
+      const useAdv = advCheck && advCheck.checked;
+      let roll = rollD20();
+      if (useAdv) roll = Math.max(roll, rollD20());
+      const result = roll + initiativeDexMod(ent);
+      const input = list.querySelector('.init-input[data-idx="' + idx + '"');
+      if (input) input.value = result;
+    });
+  });
+
+  // Drag-and-drop reorder
+  let dragSrcIdx = null;
+  list.querySelectorAll('.init-row').forEach(row => {
+    row.addEventListener('dragstart', (e) => {
+      dragSrcIdx = Number(row.dataset.idx);
+      row.style.opacity = '0.4';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      row.style.opacity = '1';
+      list.querySelectorAll('.init-row').forEach(r => r.style.borderTop = '');
+    });
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.style.borderTop = '2px solid var(--accent)';
+    });
+    row.addEventListener('dragleave', () => {
+      row.style.borderTop = '';
+    });
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.style.borderTop = '';
+      const dropIdx = Number(row.dataset.idx);
+      if (dragSrcIdx === null || dragSrcIdx === dropIdx) return;
+      const moved = initiativeOrder.splice(dragSrcIdx, 1)[0];
+      initiativeOrder.splice(dropIdx, 0, moved);
+      showInitiativeEntry();
+    });
+  });
+}
+
+function beginCombat() {
+  const list = document.getElementById('initiative-list');
+  const inputs = list.querySelectorAll('.init-input');
+  let missing = false;
+  inputs.forEach(input => {
+    const idx = Number(input.dataset.idx);
+    const val = input.value.trim();
+    if (val === '' || isNaN(Number(val))) {
+      missing = true;
+      input.style.borderColor = '#c00';
+    } else {
+      input.style.borderColor = 'var(--border)';
+      initiativeOrder[idx].initiative = Number(val);
+    }
+  });
+  if (missing) {
+    alert('Please enter an initiative roll for every participant.');
+    return;
+  }
+  // Sort by initiative descending, tie-break by DEX modifier descending
+  initiativeOrder.sort((a, b) => {
+    const diff = (b.initiative || 0) - (a.initiative || 0);
+    if (diff !== 0) return diff;
+    return initiativeDexMod(b) - initiativeDexMod(a);
+  });
+
+  document.getElementById('initiative-entry').style.display = 'none';
+  document.getElementById('engagement-mode').style.display = 'flex';
+  round = 1;
+  currentInitiativeIndex = 0;
+  document.getElementById('round-number').textContent = round;
+
+  renderInitiativeLadder();
+  activateTurn(0);
+  logRPC('>> CALL encounter:start {pcs:' + initiativeOrder.filter(e => e.kind === 'pc').length + ', npcs:' + initiativeOrder.filter(e => e.kind === 'npc').length + '} -> SUCCESS');
+}
+
+function cancelInitiativeEntry() {
+  document.getElementById('initiative-entry').style.display = 'none';
+  document.getElementById('staging-mode').style.display = 'block';
+  initiativeOrder = [];
+}
+
+function abortEncounter() {
+  document.getElementById('engagement-mode').style.display = 'none';
+  document.getElementById('initiative-entry').style.display = 'none';
+  document.getElementById('staging-mode').style.display = 'block';
+  round = 1;
+  currentInitiativeIndex = 0;
+  document.getElementById('round-number').textContent = round;
+  initiativeOrder = [];
+  document.getElementById('initiative-ladder').innerHTML = '';
+  // Clear quick-ref selection
+  const container = document.getElementById('qr-content');
+  const placeholder = document.getElementById('qr-placeholder');
+  if (container) container.style.display = 'none';
+  if (placeholder) placeholder.style.display = 'block';
+  logRPC('>> CALL encounter:abort {} -> SUCCESS');
+}
+
+function nextTurn() {
+  if (!initiativeOrder.length) return;
+  const oldIdx = currentInitiativeIndex;
+  let steps = 0;
+  let crossedRound = false;
+  do {
+    currentInitiativeIndex = (currentInitiativeIndex + 1) % initiativeOrder.length;
+    steps++;
+    if (currentInitiativeIndex === 0) crossedRound = true;
+  } while (steps < initiativeOrder.length && initiativeOrder[currentInitiativeIndex] && initiativeOrder[currentInitiativeIndex].hp <= 0);
+
+  // If everyone is dead, abort
+  if (steps >= initiativeOrder.length && initiativeOrder[currentInitiativeIndex]?.hp <= 0) {
+    logRPC('>> ALL COMBATANTS DEFEATED — encounter ends');
+    return;
+  }
+
+  if (crossedRound) {
+    round++;
+    document.getElementById('round-number').textContent = round;
+    // Reset all reactions at the top of a new round
+    initiativeOrder.forEach(ent => { ent.reactionUsed = false; });
+    logRPC('>> ROUND ' + round + ' begins — reactions reset');
+  }
+  activateTurn(currentInitiativeIndex, oldIdx);
+  logRPC('>> CALL turn:advance {"turn":' + currentInitiativeIndex + ',"round":' + round + '} -> SUCCESS');
+}
+
+function prevTurn() {
+  if (!initiativeOrder.length) return;
+  const oldIdx = currentInitiativeIndex;
+  let steps = 0;
+  let crossedRound = false;
+  do {
+    currentInitiativeIndex = (currentInitiativeIndex - 1 + initiativeOrder.length) % initiativeOrder.length;
+    steps++;
+    if (oldIdx === 0) crossedRound = true;
+  } while (steps < initiativeOrder.length && initiativeOrder[currentInitiativeIndex] && initiativeOrder[currentInitiativeIndex].hp <= 0);
+
+  if (steps >= initiativeOrder.length && initiativeOrder[currentInitiativeIndex]?.hp <= 0) return;
+
+  if (crossedRound) {
+    round = Math.max(1, round - 1);
+    document.getElementById('round-number').textContent = round;
+  }
+  activateTurn(currentInitiativeIndex, oldIdx);
+  logRPC('>> CALL turn:reverse {"turn":' + currentInitiativeIndex + ',"round":' + round + '} -> SUCCESS');
+}
+
+function renderInitiativeLadder() {
+  const list = document.getElementById('initiative-ladder');
+  list.innerHTML = '';
+  initiativeOrder.forEach((ent, i) => {
+    const row = document.createElement('div');
+    const isDead = ent.hp <= 0;
+    row.className = 'list-item initiative-ladder-row' + (i === currentInitiativeIndex ? ' active-turn' : '') + (isDead ? ' dead' : '');
+    row.dataset.idx = i;
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'flex-start';
+    row.style.gap = '2px';
+
+    const hpText = ent.kind === 'pc' ? ent.hp + '/' + ent.maxHp : '' + ent.hp;
+    const initText = ent.initiative !== undefined ? 'INIT ' + ent.initiative + ' • ' : '';
+    const deadLabel = isDead ? ' <span style="color:#f44;font-weight:800;">[DEAD]</span>' : '';
+    const bloodiedLabel = !isDead && ent.hp > 0 && ent.hp <= Math.floor((ent.maxHp || 1) * 0.5) ? '<span class="bloodied-chip">🩸 BLOODIED</span>' : '';
+
+    // HP bar
+    const pct = ent.maxHp > 0 ? Math.max(0, Math.min(100, (ent.hp / ent.maxHp) * 100)) : 0;
+    let barClass = 'high';
+    if (pct <= 25) barClass = 'low';
+    else if (pct <= 50) barClass = 'mid';
+
+    // Condition chips
+    let condHtml = '';
+    if (ent.conditions && ent.conditions.length) {
+      condHtml = ent.conditions.map((c, ci) =>
+        '<span class="cond-chip">' + c + '<button class="cond-remove" data-idx="' + i + '" data-ci="' + ci + '" title="Remove">×</button></span>'
+      ).join('');
+    }
+
+    // Reaction button
+    const reactionBtn = ent.kind === 'npc' ?
+      '<button class="btn-reaction' + (ent.reactionUsed ? ' used' : '') + '" data-idx="' + i + '" title="Toggle reaction">⚡ REACTION</button>' : '';
+
+    // Legendary Resistance badge
+    const lrBadge = ent.kind === 'npc' && ent.legendaryResistances !== null && ent.legendaryResistances !== undefined ?
+      '<span class="badge-lr' + (ent.legendaryResistances <= 0 ? ' empty' : '') + '" data-idx="' + i + '" title="Click to use Legendary Resistance">LR: ' + ent.legendaryResistances + '</span>' : '';
+
+    // Lair / Regional icons
+    const lairIcon = ent.lairActions ? '<span class="icon-lair" title="Lair Actions: ' + ent.lairActions.replace(/"/g, '&quot;').slice(0, 120) + (ent.lairActions.length > 120 ? '…' : '') + '">🏰</span>' : '';
+    const regIcon = ent.regionalEffects ? '<span class="icon-regional" title="Regional Effects: ' + ent.regionalEffects.replace(/"/g, '&quot;').slice(0, 120) + (ent.regionalEffects.length > 120 ? '…' : '') + '">🌎</span>' : '';
+
+    // Temp HP controls
+    const tempControls = ent.kind === 'npc' ?
+      '<div class="temp-hp-row"><span style="font-size:11px;color:var(--muted);">Temp HP:</span><input class="temp-hp-input" type="number" data-idx="' + i + '" placeholder="+" min="0" value="" /><button class="btn-temp" data-idx="' + i + '">+ ADD</button>' + (ent.tempHp > 0 ? '<span class="temp-display">+' + ent.tempHp + ' temp</span>' : '') + '</div>' : '';
+
+    // Condition add dropdown
+    const condAdd = ent.kind === 'npc' ?
+      '<select class="cond-add-select" data-idx="' + i + '"><option value="">+ Condition</option>' + CONDITIONS_LIST.map(c => '<option value="' + c + '">' + c + '</option>').join('') + '</select>' : '';
+
+    // Damage / heal controls
+    const dmgControls = ent.kind === 'npc' ?
+      '<input class="dmg-input" type="number" data-idx="' + i + '" placeholder="Dmg" min="0" value="" />' +
+      '<button class="btn-dmg" data-idx="' + i + '" data-delta="-1">DAMAGE</button>' +
+      '<button class="btn-heal" data-idx="' + i + '" data-delta="+1">HEAL</button>' :
+      '<span style="color:var(--muted);font-size:11px;">PC managed in DDB</span>';
+
+    row.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<span class="active-indicator" style="display:' + (i === currentInitiativeIndex ? 'inline-block' : 'none') + '"></span>' +
+          '<strong>' + ent.name + '</strong>' + deadLabel + bloodiedLabel + ' ' + initText + '(AC ' + ent.ac + ')' +
+          reactionBtn + lrBadge + lairIcon + regIcon +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' + dmgControls + '</div>' +
+      '</div>' +
+      '<div class="init-hp-bar"><div class="init-hp-fill ' + barClass + '" style="width:' + pct + '%;"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;">' +
+        '<span>HP: <span class="hp-val">' + hpText + '</span></span>' +
+      '</div>' +
+      (condHtml ? '<div style="margin-top:2px;flex-wrap:wrap;">' + condHtml + '</div>' : '') +
+      condAdd + tempControls;
+    list.appendChild(row);
+  });
+
+  // Click handler for quick-ref (ignore button/input/select clicks)
+  list.querySelectorAll('.initiative-ladder-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+      const idx = Number(row.dataset.idx);
+      showInitiativeQuickRef(idx);
+    });
+  });
+
+  // Damage / heal buttons
+  list.querySelectorAll('.btn-dmg, .btn-heal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      const input = list.querySelector('.dmg-input[data-idx="' + idx + '"');
+      const amount = Number(input ? input.value : 0);
+      if (!amount || amount <= 0) return;
+      const delta = btn.dataset.delta === '-1' ? -amount : amount;
+      modHpByAmount(idx, delta);
+      if (input) input.value = '';
+    });
+  });
+
+  // Reaction toggle
+  list.querySelectorAll('.btn-reaction').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      toggleReaction(idx);
+    });
+  });
+
+  // Legendary resistance use
+  list.querySelectorAll('.badge-lr').forEach(badge => {
+    badge.addEventListener('click', () => {
+      const idx = Number(badge.dataset.idx);
+      useLegendaryResistance(idx);
+    });
+  });
+
+  // Remove condition
+  list.querySelectorAll('.cond-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      const ci = Number(btn.dataset.ci);
+      removeCondition(idx, ci);
+    });
+  });
+
+  // Add condition
+  list.querySelectorAll('.cond-add-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const idx = Number(sel.dataset.idx);
+      const val = sel.value;
+      if (val) { addCondition(idx, val); sel.value = ''; }
+    });
+  });
+
+  // Add temp HP
+  list.querySelectorAll('.btn-temp').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      const input = list.querySelector('.temp-hp-input[data-idx="' + idx + '"');
+      const amount = Number(input ? input.value : 0);
+      if (amount > 0) { modTempHp(idx, amount); if (input) input.value = ''; }
+    });
+  });
+}
+
+function showInitiativeQuickRef(idx) {
+  const ent = initiativeOrder[idx];
+  if (!ent) return;
+  const container = document.getElementById('qr-content');
+  const placeholder = document.getElementById('qr-placeholder');
+  if (!container) return;
+
+  let html = '';
+  if (ent.hp <= 0) {
+    html += '<div style="background:#3a0000;color:#f44;padding:8px 12px;font-family:var(--font-display);font-weight:800;font-size:18px;text-align:center;border:1px solid #a22;border-radius:4px;margin-bottom:8px;">☠️ ' + ent.name + ' IS DEAD</div>';
+  }
+
+  if (ent.kind === 'npc') {
+    html += renderMonsterQuickRef(ent);
+  } else {
+    html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + ent.name + '</div>';
+    html += '<div style="color:var(--muted);font-style:italic;margin-bottom:6px;">Player Character</div>';
+    html += '<div style="margin-bottom:6px;"><strong>AC</strong> ' + ent.ac + ' <span style="color:var(--muted)">|</span> <strong>HP</strong> ' + ent.hp + '/' + ent.maxHp + ' <span style="color:var(--muted)">|</span> <strong>Init</strong> ' + (ent.initiative || '—') + '</div>';
+    html += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;">Use the character detail sheet (F1) for full PC stats.</div>';
+  }
+  container.innerHTML = html;
+  if (ent.kind === 'npc') enhanceQuickRefWithRolls(container);
+  container.style.display = 'block';
+  if (placeholder) placeholder.style.display = 'none';
+
+  // Highlight selected row in ladder
+  const list = document.getElementById('initiative-ladder');
+  list.querySelectorAll('.initiative-ladder-row').forEach((r, i) => {
+    if (i === idx) r.classList.add('selected');
+    else r.classList.remove('selected');
+  });
+
+  logRPC('>> QUICKREF loaded "' + ent.name + '" from initiative ladder');
+}
+
+function activateTurn(newIdx, oldIdx) {
+  const list = document.getElementById('initiative-ladder');
+  const rows = list.querySelectorAll('.list-item');
+  if (oldIdx !== undefined && rows[oldIdx]) {
+    rows[oldIdx].classList.remove('active-turn');
+    const oldInd = rows[oldIdx].querySelector('.active-indicator');
+    if (oldInd) oldInd.style.display = 'none';
+  }
+  if (rows[newIdx]) {
+    rows[newIdx].classList.add('active-turn');
+    const newInd = rows[newIdx].querySelector('.active-indicator');
+    if (newInd) newInd.style.display = 'inline-block';
+  }
+  // Auto-show quick-ref for the active creature
+  if (initiativeOrder[newIdx]) showInitiativeQuickRef(newIdx);
+}
+
+function modHpByAmount(idx, delta) {
+  const ent = initiativeOrder[idx];
+  if (!ent) return;
+  const cur = ent.hp || 0;
+  const max = ent.maxHp || cur;
+  let next = cur;
+  let tempBurned = 0;
+
+  if (delta < 0) {
+    // Damage: temp HP absorbs first
+    const dmg = Math.abs(delta);
+    const temp = ent.tempHp || 0;
+    if (temp > 0) {
+      tempBurned = Math.min(temp, dmg);
+      ent.tempHp = Math.max(0, temp - dmg);
+      const remainingDmg = dmg - tempBurned;
+      next = Math.max(0, cur - remainingDmg);
+    } else {
+      next = Math.max(0, cur - dmg);
+    }
+  } else {
+    // Healing: restore HP only (temp HP is added separately)
+    next = Math.min(max, cur + delta);
+  }
+  ent.hp = next;
+
+  // Re-render to show updated HP and dead state
+  renderInitiativeLadder();
+
+  // If this is the currently active creature, refresh quick-ref
+  if (idx === currentInitiativeIndex) {
+    showInitiativeQuickRef(idx);
+  }
+
+  const action = delta < 0 ? 'damage' : 'heal';
+  logRPC('>> CALL hp:' + action + ' {"name":"' + ent.name + '","amount":' + Math.abs(delta) + ',"newHp":' + next + (tempBurned ? ',"tempBurned":' + tempBurned : '') + '} -> SUCCESS');
+
+  // If creature just died, auto-advance past it if it's the active turn
+  if (next === 0 && delta < 0 && idx === currentInitiativeIndex) {
+    logRPC('>> ' + ent.name + ' has died!');
+    setTimeout(() => nextTurn(), 600);
+  }
+}
+
+// Legacy coarse +/-5 handler (kept for backward compatibility if any code still calls it)
+function modHp(btn, delta) {
+  const row = btn.closest('.list-item');
+  const idx = Number(row.dataset.idx);
+  modHpByAmount(idx, delta);
+}
+
+/* ---------- PHASE 1: TACTICAL HELPERS ---------- */
+function toggleReaction(idx) {
+  const ent = initiativeOrder[idx];
+  if (!ent || ent.kind !== 'npc') return;
+  ent.reactionUsed = !ent.reactionUsed;
+  renderInitiativeLadder();
+  logRPC('>> ' + ent.name + ' reaction ' + (ent.reactionUsed ? 'USED' : 'RESTORED'));
+}
+
+function useLegendaryResistance(idx) {
+  const ent = initiativeOrder[idx];
+  if (!ent || ent.kind !== 'npc' || ent.legendaryResistances === null || ent.legendaryResistances === undefined) return;
+  if (ent.legendaryResistances <= 0) {
+    logRPC('>> ' + ent.name + ' has no Legendary Resistances left!');
+    return;
+  }
+  ent.legendaryResistances--;
+  renderInitiativeLadder();
+  logRPC('>> ' + ent.name + ' uses Legendary Resistance (' + ent.legendaryResistances + ' remaining)');
+}
+
+function addCondition(idx, condition) {
+  const ent = initiativeOrder[idx];
+  if (!ent || ent.kind !== 'npc') return;
+  if (!ent.conditions) ent.conditions = [];
+  if (!ent.conditions.includes(condition)) {
+    ent.conditions.push(condition);
+    renderInitiativeLadder();
+    if (idx === currentInitiativeIndex) showInitiativeQuickRef(idx);
+    logRPC('>> ' + ent.name + ' gains condition: ' + condition);
+  }
+}
+
+function removeCondition(idx, ci) {
+  const ent = initiativeOrder[idx];
+  if (!ent || !ent.conditions) return;
+  const removed = ent.conditions.splice(ci, 1)[0];
+  renderInitiativeLadder();
+  if (idx === currentInitiativeIndex) showInitiativeQuickRef(idx);
+  logRPC('>> ' + ent.name + ' loses condition: ' + removed);
+}
+
+function modTempHp(idx, amount) {
+  const ent = initiativeOrder[idx];
+  if (!ent || ent.kind !== 'npc') return;
+  ent.tempHp = (ent.tempHp || 0) + amount;
+  renderInitiativeLadder();
+  if (idx === currentInitiativeIndex) showInitiativeQuickRef(idx);
+  logRPC('>> ' + ent.name + ' gains +' + amount + ' temp HP (total: ' + ent.tempHp + ')');
+}
+
+function abilityMod(score) {
+  const mod = Math.floor((score - 10) / 2);
+  return (mod >= 0 ? '+' : '') + mod;
+}
+
+function renderMonsterQuickRef(m) {
+  // Build rich HTML from monster data (encounter pool or initiative order entry)
+  let html = '';
+
+  // Monster image
+  if (m.avatarUrl) {
+    html += '<img src="' + m.avatarUrl + '" style="max-height:160px;width:auto;border-radius:4px;object-fit:cover;display:block;margin-bottom:8px;" alt="' + (m.name || '') + '">';
+  }
+
+  // Header
+  const subtitle = [m.size, m.type, m.alignment].filter(Boolean).join(' ');
+  html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + (m.name || 'Unknown') + '</div>';
+  if (subtitle) html += '<div style="color:var(--muted);font-style:italic;margin-bottom:6px;">' + subtitle + '</div>';
+
+  // Core stats line
+  const coreStats = [];
+  if (m.ac) coreStats.push('<strong>AC</strong> ' + m.ac + (m.acDesc ? ' ' + m.acDesc : ''));
+  if (m.hp) coreStats.push('<strong>HP</strong> ' + m.hp + (m.hpDice ? ' (' + m.hpDice + ')' : ''));
+  if (m.cr) coreStats.push('<strong>CR</strong> ' + m.cr + (m.xp ? ' (' + m.xp.toLocaleString() + ' XP)' : ''));
+  if (coreStats.length) html += '<div style="margin-bottom:6px;">' + coreStats.join(' <span style="color:var(--muted)">|</span> ') + '</div>';
+
+  // Resistance / Vulnerability / Immunity cheat sheet
+  const rvRows = [];
+  if (m.damageResistances && m.damageResistances.length) {
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#48c;">Resistant</strong> ' + m.damageResistances.join(', ') + '</span>');
+  }
+  if (m.damageImmunities && m.damageImmunities.length) {
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#2a5;">Immune</strong> ' + m.damageImmunities.join(', ') + '</span>');
+  }
+  if (m.damageVulnerabilities && m.damageVulnerabilities.length) {
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#f44;">Vulnerable</strong> ' + m.damageVulnerabilities.join(', ') + '</span>');
+  }
+  if (m.conditionImmunities && m.conditionImmunities.length) {
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#a4c;">Condition Immune</strong> ' + m.conditionImmunities.join(', ') + '</span>');
+  }
+  if (rvRows.length) {
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;padding:4px;background:#151515;border-radius:4px;border:1px solid var(--border);">' + rvRows.join('') + '</div>';
+  }
+
+  // Speed
+  if (m.movements && m.movements.length) {
+    const speeds = m.movements.map(mv => (mv.name === 'walk' ? mv.speed + ' ft.' : mv.name + ' ' + mv.speed + ' ft.'));
+    html += '<div style="margin-bottom:6px;"><strong>Speed</strong> ' + speeds.join(', ') + '</div>';
+  }
+
+  // Ability scores
+  if (m.stats) {
+    const statOrder = ['STR','DEX','CON','INT','WIS','CHA'];
+    const statCells = statOrder.map(s => {
+      const val = m.stats[s];
+      return val !== undefined ? '<span style="display:inline-block;text-align:center;min-width:42px;"><strong>' + s + '</strong><br>' + val + ' (' + abilityMod(val) + ')</span>' : '';
+    }).filter(Boolean);
+    if (statCells.length) html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;padding:4px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">' + statCells.join('') + '</div>';
+  }
+
+  // Special Traits (abilities, reactions, etc.)
+  if (m.special) {
+    html += '<div style="margin-top:6px;padding:4px;background:#151515;border-radius:4px;font-size:12px;color:#aaa;">' +
+      '<strong style="color:#68b;">Special Traits:</strong> ' + m.special.replace(/\n/g, '<br>') +
+      '</div>';
+  }
+
+  // Saves, Skills, Senses, Languages
+  const infoLines = [];
+  if (m.savingThrows && m.savingThrows.length) {
+    infoLines.push('<strong>Saving Throws</strong> ' + m.savingThrows.map(s => s.stat + ' +' + s.bonus).join(', '));
+  }
+  if (m.skillsHtml) infoLines.push('<strong>Skills</strong> ' + m.skillsHtml);
+  if (m.senses && m.senses.length) {
+    const senseStrs = m.senses.map(s => s.name + ' ' + s.notes);
+    if (m.passivePerception) senseStrs.push('passive Perception ' + m.passivePerception);
+    infoLines.push('<strong>Senses</strong> ' + senseStrs.join(', '));
+  } else if (m.passivePerception) {
+    infoLines.push('<strong>Senses</strong> passive Perception ' + m.passivePerception);
+  }
+  if (m.languages) infoLines.push('<strong>Languages</strong> ' + m.languages);
+  if (infoLines.length) html += '<div style="margin-bottom:6px;">' + infoLines.join('<br>') + '</div>';
+
+  // Helper to render a section
+  function section(title, text) {
+    if (!text) return '';
+    return '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">' +
+      '<div style="font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--accent);margin-bottom:4px;">' + title + '</div>' +
+      '<div>' + text + '</div>' +
+      '</div>';
+  }
+
+  html += section('SPECIAL TRAITS', m.special);
+  html += section('ACTIONS', m.actions);
+  html += section('BONUS ACTIONS', m.bonusActions);
+  html += section('REACTIONS', m.reactions);
+  html += section('LEGENDARY ACTIONS', m.legendary);
+  html += section('MYTHIC ACTIONS', m.mythic);
+
+  return html;
+}
+
+/* ---------- DICE ROLLING & QUICK-REF ENHANCEMENT ---------- */
+function rollDice(count, sides) {
+  let total = 0;
+  for (let i = 0; i < count; i++) total += Math.floor(Math.random() * sides) + 1;
+  return total;
+}
+
+function parseDiceExpression(expr) {
+  const m = expr.match(/(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?/i);
+  if (!m) return null;
+  const count = parseInt(m[1], 10);
+  const sides = parseInt(m[2], 10);
+  const bonus = m[3] ? (m[3] === '+' ? 1 : -1) * parseInt(m[4], 10) : 0;
+  return { count, sides, bonus };
+}
+
+function formatRollResult(label, rolls, bonus, total) {
+  const parts = rolls.join(' + ');
+  const bonusStr = bonus > 0 ? ' + ' + bonus : (bonus < 0 ? ' - ' + Math.abs(bonus) : '');
+  return label + ': ' + parts + bonusStr + ' = <strong>' + total + '</strong>';
+}
+
+function enhanceQuickRefWithRolls(container) {
+  if (!container) return;
+  const paragraphs = container.querySelectorAll('p, div > div > div');
+  paragraphs.forEach(p => {
+    const text = p.textContent || '';
+    // Attack roll: "+X to hit"
+    const atkMatch = text.match(/([+-]\d+)\s+to\s+hit/i);
+    // Damage dice: "(XdY + Z)"
+    const dmgMatch = text.match(/\((\d+d\d+(?:\s*[+-]\s*\d+)?)\)/i);
+    // Recharge: "(Recharge 5-6)" or "(Recharge 6)"
+    const rechargeMatch = text.match(/\(Recharge\s+(\d+)(?:-(\d+))?\)/i);
+
+    let buttons = '';
+    if (atkMatch) {
+      const mod = parseInt(atkMatch[1], 10);
+      buttons += '<button class="qr-roll-btn" data-type="atk" data-mod="' + mod + '" style="background:#222;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:1px 6px;font-size:11px;cursor:pointer;margin-right:4px;">🎲 ATK</button>';
+    }
+    if (dmgMatch) {
+      buttons += '<button class="qr-roll-btn" data-type="dmg" data-expr="' + dmgMatch[1] + '" style="background:#222;color:#f44;border:1px solid #a22;border-radius:3px;padding:1px 6px;font-size:11px;cursor:pointer;margin-right:4px;">⚔️ DMG</button>';
+    }
+    if (rechargeMatch) {
+      const min = parseInt(rechargeMatch[1], 10);
+      const max = rechargeMatch[2] ? parseInt(rechargeMatch[2], 10) : min;
+      buttons += '<button class="qr-roll-btn" data-type="recharge" data-min="' + min + '" data-max="' + max + '" style="background:#222;color:#ca3;border:1px solid #ca3;border-radius:3px;padding:1px 6px;font-size:11px;cursor:pointer;margin-right:4px;">🎲 Recharge</button>';
+    }
+    if (buttons) {
+      const btnWrap = document.createElement('div');
+      btnWrap.style.marginTop = '4px';
+      btnWrap.innerHTML = buttons;
+      p.appendChild(btnWrap);
+    }
+  });
+
+  // Add delegated click handler if not already present
+  if (!container.dataset.rollListener) {
+    container.dataset.rollListener = '1';
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('.qr-roll-btn');
+      if (!btn) return;
+      e.stopPropagation();
+      const type = btn.dataset.type;
+      let resultText = '';
+      if (type === 'atk') {
+        const mod = parseInt(btn.dataset.mod, 10);
+        const roll = rollD20();
+        const total = roll + mod;
+        resultText = formatRollResult('Attack', [roll], mod, total);
+      } else if (type === 'dmg') {
+        const parsed = parseDiceExpression(btn.dataset.expr);
+        if (parsed) {
+          const rolls = [];
+          for (let i = 0; i < parsed.count; i++) rolls.push(rollDice(1, parsed.sides));
+          const total = rolls.reduce((a, b) => a + b, 0) + parsed.bonus;
+          resultText = formatRollResult('Damage', rolls, parsed.bonus, total);
+        }
+      } else if (type === 'recharge') {
+        const min = parseInt(btn.dataset.min, 10);
+        const max = parseInt(btn.dataset.max, 10);
+        const roll = rollDice(1, 6);
+        const recharged = roll >= min && roll <= max;
+        resultText = 'Recharge: rolled <strong>' + roll + '</strong> — ' + (recharged ? '<span style="color:#2a5;">RECHARGED</span>' : '<span style="color:#f44;">Not recharged</span>');
+      }
+      if (resultText) {
+        let log = container.querySelector('.qr-roll-log');
+        if (!log) {
+          log = document.createElement('div');
+          log.className = 'qr-roll-log';
+          log.style.marginTop = '8px';
+          log.style.padding = '6px';
+          log.style.background = '#111';
+          log.style.border = '1px solid var(--border)';
+          log.style.borderRadius = '4px';
+          log.style.fontSize = '12px';
+          container.insertBefore(log, container.firstChild);
+        }
+        const entry = document.createElement('div');
+        entry.style.marginBottom = '2px';
+        entry.innerHTML = resultText;
+        log.insertBefore(entry, log.firstChild);
+        // Keep only last 5 entries
+        while (log.children.length > 5) log.removeChild(log.lastChild);
+      }
+    });
+  }
+}
+
+function showMonsterDetail(idx) {
+  const m = encounterPool[idx];
+  if (!m) return;
+  selectedMonsterIdx = idx;
+  renderEncounterPool(); // re-render to show selection highlight
+  const container = document.getElementById('qr-content');
+  const placeholder = document.getElementById('qr-placeholder');
+  container.innerHTML = renderMonsterQuickRef(m);
+  enhanceQuickRefWithRolls(container);
+  container.style.display = 'block';
+  if (placeholder) placeholder.style.display = 'none';
+  logRPC('>> QUICKREF loaded "' + m.name + '" from encounter pool');
+}
+
+async function loadQuickRef(creatureName) {
+  // 1) Try stored DDB data from initiative order first
+  const active = initiativeOrder[currentInitiativeIndex];
+  if (active && active.kind === 'npc' && active.name.replace(/ #\d+$/, '') === creatureName && active.actions) {
+    const container = document.getElementById('qr-content');
+    const placeholder = document.getElementById('qr-placeholder');
+    if (container) {
+      container.innerHTML = renderMonsterQuickRef(active);
+      container.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+      logRPC('>> QUICKREF loaded "' + creatureName + '" from DDB cache');
+      return;
+    }
+  }
+
+  // 2) Fallback: parse local bestiary markdown
+  try {
+    const bestiaryEntry = bestiaryCache.find(b => b.name.toLowerCase() === creatureName.toLowerCase());
+    if (!bestiaryEntry) return;
+    const file = await apiPost('/api/mcp', { method: 'filesystem-mcp.read_file', params: { path: bestiaryEntry.path }, id: Date.now() });
+    const content = file.content;
+
+    const extractSection = (label, regex) => {
+      const match = content.match(regex);
+      return match ? match[1].trim() : '';
+    };
+
+    const m = {
+      name: creatureName,
+      actions: extractSection('Actions', /## Actions([\s\S]*?)(?=## |\n## |$)/i),
+      bonusActions: extractSection('Bonus Actions', /## Bonus Actions([\s\S]*?)(?=## |\n## |$)/i),
+      legendary: extractSection('Legendary Actions', /## Legendary Actions([\s\S]*?)(?=## |\n## |$)/i),
+      mythic: extractSection('Mythic Actions', /## Mythic Actions([\s\S]*?)(?=## |\n## |$)/i),
+      reactions: extractSection('Reactions', /## Reactions([\s\S]*?)(?=## |\n## |$)/i),
+      special: extractSection('Traits', /## Traits([\s\S]*?)(?=## |\n## |$)/i) || extractSection('', /\n\*\*\*\n([\s\S]*?)(?=## Actions)/i)
+    };
+
+    const container = document.getElementById('qr-content');
+    const placeholder = document.getElementById('qr-placeholder');
+    if (container) {
+      container.innerHTML = renderMonsterQuickRef(m);
+      enhanceQuickRefWithRolls(container);
+      container.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+    }
+    logRPC('>> QUICKREF loaded "' + creatureName + '" from ' + bestiaryEntry.path);
+  } catch (e) {
+    logRPC('>> QUICKREF ERROR: ' + e.message);
+  }
+}
+
+document.getElementById('init-engagement-btn').addEventListener('click', initiateEngagement);
+document.getElementById('begin-combat-btn').addEventListener('click', beginCombat);
+document.getElementById('cancel-init-btn').addEventListener('click', cancelInitiativeEntry);
+document.getElementById('abort-encounter-btn').addEventListener('click', abortEncounter);
+document.getElementById('next-round-btn').addEventListener('click', nextTurn);
+document.getElementById('prev-round-btn').addEventListener('click', prevTurn);
+
+async function hydrateBestiary() {
+  try {
+    bestiaryCache = await apiGet('/api/bestiary');
+    logRPC('>> BESTIARY: ' + bestiaryCache.length + ' entries indexed');
+  } catch (e) {
+    logRPC('>> BESTIARY ERROR: ' + e.message);
+  }
+}
+
+/* ============================================================
+   PAGE 3: LORE WORKSPACE [F3]
+   ============================================================ */
+async function buildVaultTree() {
+  const tree = document.getElementById('vault-tree');
+  tree.innerHTML = '';
+  const dirs = ['Bestiary', 'Factions', 'NPCs', 'Locations'];
+  for (const dir of dirs) {
+    try {
+      const items = await apiGet('/api/vault?dir=' + encodeURIComponent(dir));
+      if (!items.length) continue;
+      const li = document.createElement('li');
+      li.style.marginBottom = '8px';
+      li.innerHTML = '<div class="heavy" style="margin-bottom:4px;">/' + dir + '</div>';
+      const sub = document.createElement('ul');
+      sub.style.listStyle = 'none';
+      sub.style.paddingLeft = '12px';
+      items.forEach(item => {
+        if (item.isDirectory) return;
+        const btn = document.createElement('button');
+        btn.className = 'button secondary';
+        btn.textContent = item.name;
+        btn.style.marginBottom = '4px';
+        btn.style.textAlign = 'left';
+        btn.addEventListener('click', () => loadLore(item.path));
+        const sli = document.createElement('li');
+        sli.appendChild(btn);
+        sub.appendChild(sli);
+      });
+      li.appendChild(sub);
+      tree.appendChild(li);
+    } catch (e) {
+      // Skip missing directories
+    }
+  }
+  logRPC('>> VAULT: tree built');
+}
+
+async function loadLore(filePath) {
+  try {
+    const file = await apiPost('/api/mcp', { method: 'filesystem-mcp.read_file', params: { path: filePath }, id: Date.now() });
+    const view = document.getElementById('markdown-view');
+    const escaped = file.content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    view.innerHTML = '<pre style="white-space:pre-wrap;font-family:var(--font-body);font-size:13px;">' + escaped + '</pre>';
+    logRPC('>> CALL filesystem-mcp:read_file {"path":"' + filePath + '"} -> SUCCESS');
+  } catch (e) {
+    logRPC('>> LORE ERROR: ' + e.message);
+  }
+}
+
+/* ============================================================
+   PAGE 4: ADVENTURES WORKSPACE [F4]
+   ============================================================ */
+document.getElementById('adventure-file-btn').addEventListener('click', () => {
+  document.getElementById('adventure-file-input').click();
+});
+
+/* ---------- ADVENTURE PARSING ---------- */
+
+/**
+ * Detect if text is a "Combat Encounters Reference" format (table-based stat blocks)
+ */
+function isCombatEncountersReferenceFormat(text) {
+  return /\|\s*ENCOUNTER\s+\d+\s+.+?\s*\|/i.test(text) &&
+    /\|\s*\*\*AC\*\*\s*\|/.test(text) &&
+    /\|\s*\*\*HP\*\*\s*\|/.test(text);
+}
+
+/**
+ * Parse table-based "Combat Encounters Reference" documents.
+ * Returns array of { name, monsters[] } encounter objects.
+ */
+function parseCombatEncountersReference(text) {
+  const lines = text.split('\n');
+  const encounters = [];
+  let currentEncounter = null;
+  let currentCreature = null;
+  let inCreatureTable = false;
+  let tableBuffer = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Detect encounter header: | ENCOUNTER N  NAME |  |  |
+    const encMatch = line.match(/^\|\s*ENCOUNTER\s+(\d+)\s+(.+?)\s*\|/i);
+    if (encMatch) {
+      if (currentEncounter) encounters.push(currentEncounter);
+      currentEncounter = { name: encMatch[2].trim(), monsters: [] };
+      inCreatureTable = false;
+      tableBuffer = [];
+      continue;
+    }
+
+    // Detect creature header row: | Name  CR ½  |  description  |  |
+    const creatureMatch = line.match(/^\|\s*([^|]+?)\s+CR\s+([\d\/½¼⅛]+)\s*\|/i);
+    if (creatureMatch && currentEncounter) {
+      if (currentCreature) finalizeCreature(currentEncounter, currentCreature, tableBuffer);
+      currentCreature = {
+        name: creatureMatch[1].trim(),
+        cr: creatureMatch[2].trim(),
+        number: 1,
+        statBlock: ''
+      };
+      inCreatureTable = true;
+      tableBuffer = [line];
+      continue;
+    }
+
+    // Detect "Number" row: | **Number** | 10 ... |
+    const numMatch = line.match(/^\|\s*\*\*Number\*\*\s*\|\s*(\d+)/i);
+    if (numMatch && currentCreature) {
+      currentCreature.number = parseInt(numMatch[1], 10);
+    }
+
+    // Collect table rows for stat block
+    if (inCreatureTable && line.startsWith('|')) {
+      tableBuffer.push(line);
+      // End of creature table: blank line or non-table line
+    } else if (inCreatureTable && line.trim() === '') {
+      if (currentCreature) finalizeCreature(currentEncounter, currentCreature, tableBuffer);
+      currentCreature = null;
+      inCreatureTable = false;
+      tableBuffer = [];
+    }
+  }
+
+  if (currentCreature && currentEncounter) finalizeCreature(currentEncounter, currentCreature, tableBuffer);
+  if (currentEncounter) encounters.push(currentEncounter);
+
+  // Filter out encounters with no monsters
+  return encounters.filter(e => e.monsters.length > 0);
+}
+
+function finalizeCreature(encounter, creature, buffer) {
+  if (!creature || !encounter) return;
+  creature.statBlock = buffer.join('\n');
+  // Build a flat stat block string for server parsing
+  const flat = buffer.map(l => l.replace(/^\|?\s*|\s*\|?$/g, '').replace(/\|/g, ' ').trim()).filter(Boolean).join('\n');
+  creature.statBlockFlat = flat;
+  encounter.monsters.push(creature);
+}
+
+function extractStatBlocksFromMarkdown(text) {
+  const blocks = [];
+  const lines = text.split(/\n/);
+  let currentBlock = null;
+  let currentName = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headerMatch = line.match(/^#{1,3}\s+(.+)$/);
+    if (headerMatch) {
+      if (currentBlock && currentName && /armor\s*class|hit\s*points|challenge|cr\s+\d/i.test(currentBlock)) {
+        blocks.push({ name: currentName, text: currentBlock.trim() });
+      }
+      currentName = headerMatch[1].trim();
+      currentBlock = line + '\n';
+    } else if (currentBlock !== null) {
+      currentBlock += line + '\n';
+    }
+  }
+  if (currentBlock && currentName && /armor\s*class|hit\s*points|challenge|cr\s+\d/i.test(currentBlock)) {
+    blocks.push({ name: currentName, text: currentBlock.trim() });
+  }
+
+  // Also extract table-based stat blocks (Combat Encounters Reference format)
+  const tableBlocks = parseCombatEncountersReference(text);
+  tableBlocks.forEach(enc => {
+    enc.monsters.forEach(m => {
+      if (m.statBlockFlat) {
+        blocks.push({ name: m.name, text: m.statBlockFlat });
+      }
+    });
+  });
+
+  return blocks;
+}
+
+function findStatBlockForMonster(name, statBlocks) {
+  const lowerName = name.toLowerCase();
+  let block = statBlocks.find(b => b.name.toLowerCase() === lowerName);
+  if (block) return block.text;
+  block = statBlocks.find(b => lowerName.includes(b.name.toLowerCase()) || b.name.toLowerCase().includes(lowerName));
+  if (block) return block.text;
+  return null;
+}
+
+// Split adventure text into encounter sections (## Encounter, ### Area, etc.)
+function splitAdventureIntoSections(text) {
+  const sections = [];
+  const lines = text.split(/\n/);
+  let currentSection = { title: 'General', lines: [] };
+
+  for (const line of lines) {
+    const encMatch = line.match(/^#{2,3}\s*(Encounter|Area|Room|Scene|Combat|Battle)\s*:?\s*(.+)?/i);
+    if (encMatch) {
+      if (currentSection.lines.length) {
+        sections.push(currentSection);
+      }
+      currentSection = { title: (encMatch[2] || encMatch[1]).trim(), lines: [line] };
+    } else {
+      currentSection.lines.push(line);
+    }
+  }
+  if (currentSection.lines.length) sections.push(currentSection);
+  // If no sections found, treat entire text as one section
+  if (sections.length === 0) sections.push({ title: 'Adventure', lines: lines });
+  return sections;
+}
+
+document.getElementById('adventure-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) { logRPC('>> ADVENTURE ERROR: No file selected'); return; }
+  if (!file.name.endsWith('.md')) {
+    logRPC('>> ADVENTURE ERROR: Only .md files supported (got "' + file.name + '")');
+    return;
+  }
+  currentAdventureFileName = file.name.replace(/\.md$/i, '');
+  // Clear previous encounters to avoid duplicates
+  encounters = [];
+  saveEncountersToStorage();
+  logRPC('>> ADVENTURE: Cleared previous encounters');
+
+  const text = await file.text();
+  logRPC('>> ADVENTURE: Loaded "' + file.name + '" (' + text.length + ' chars, ' + text.split(/\n+/).length + ' lines)');
+  if (!text.trim()) {
+    logRPC('>> ADVENTURE ERROR: File is empty');
+    return;
+  }
+
+  // Extract any homebrew stat blocks before sending to AI
+  const extractedStatBlocks = extractStatBlocksFromMarkdown(text);
+  logRPC('>> ADVENTURE: Extracted ' + extractedStatBlocks.length + ' homebrew stat block(s) from file');
+
+  // --- NEW: Dedicated parser for "Combat Encounters Reference" table-based format ---
+  if (isCombatEncountersReferenceFormat(text)) {
+    logRPC('>> ADVENTURE: Detected Combat Encounters Reference format — using table parser');
+    const encounters = parseCombatEncountersReference(text);
+    logRPC('>> ADVENTURE: Parsed ' + encounters.length + ' encounter(s) with ' + encounters.reduce((s, e) => s + e.monsters.length, 0) + ' creature group(s)');
+    try {
+      let totalEncounters = 0;
+      for (const enc of encounters) {
+        // Convert parsed creatures to the ingest format
+        const monsterGroups = enc.monsters.map(m => ({
+          name: m.name,
+          qty: m.number || 1,
+          type: 'Standard'
+        }));
+        // Pass stat blocks so they resolve as homebrew
+        const statBlockTexts = enc.monsters.map(m => m.statBlockFlat || m.statBlock).filter(Boolean);
+        // Build a lookup for findStatBlockForMonster
+        const blockObjs = enc.monsters.map(m => ({
+          name: m.name,
+          text: m.statBlockFlat || m.statBlock || ''
+        }));
+        const advName = enc.name;
+        await ingestEncounterFromAI(monsterGroups, advName, blockObjs);
+        totalEncounters++;
+      }
+      logRPC('>> ADVENTURE: Created ' + totalEncounters + ' encounter(s) from table parser');
+      buildBeatsFromText(text);
+      populateAdventureMetadata();
+      return;
+    } catch (err) {
+      logRPC('>> ADVENTURE TABLE PARSE ERROR: ' + err.message + ' — falling back to AI');
+      console.error('Table parse error:', err);
+    }
+  }
+
+  // Split into sections for multi-encounter parsing
+  const sections = splitAdventureIntoSections(text);
+  logRPC('>> ADVENTURE: Found ' + sections.length + ' section(s)');
+
+  logRPC('>> ADVENTURE: Bestiary cache has ' + bestiaryCache.length + ' entries for CR matching');
+  try {
+    let totalEncounters = 0;
+    for (const section of sections) {
+      const sectionText = section.lines.join('\n');
+      if (sectionText.length < 50) continue;
+      logRPC('>> ADVENTURE: Parsing section "' + section.title + '" (' + sectionText.length + ' chars)...');
+      const monsters = await apiPost('/api/parse-adventure', { narrative: sectionText });
+      if (monsters.length) {
+        logRPC('>> AI PARSE: Section "' + section.title + '" → ' + monsters.length + ' creature group(s)');
+        await ingestEncounterFromAI(monsters, section.title, extractedStatBlocks);
+        totalEncounters++;
+      }
+    }
+    if (totalEncounters === 0) {
+      logRPC('>> AI PARSE WARNING: Zero encounters found. Attempting full-text parse...');
+      const monsters = await apiPost('/api/parse-adventure', { narrative: text });
+      if (monsters.length) {
+        await ingestEncounterFromAI(monsters, 'Imported Encounter', extractedStatBlocks);
+        totalEncounters++;
+      }
+    }
+    logRPC('>> ADVENTURE: Created ' + totalEncounters + ' encounter(s)');
+    buildBeatsFromText(text);
+    populateAdventureMetadata();
+  } catch (err) {
+    logRPC('>> AI PARSE ERROR: ' + err.message);
+    console.error('Adventure parse full error:', err);
+  }
+});
+
+async function ingestEncounterFromAI(monsters, adventureName, statBlocks) {
+  let added = 0;
+  let resolved = 0;
+  let homebrew = 0;
+  const newPool = [];
+
+  for (const m of monsters) {
+    const name = m.name || 'Unknown';
+    const qty = Number(m.qty) || 1;
+    const variant = m.type || 'Standard';
+
+    // Try to find a homebrew stat block in the adventure text
+    const statBlock = statBlocks ? findStatBlockForMonster(name, statBlocks) : null;
+
+    // Resolve via server (D&D Beyond first, then stat block fallback)
+    let resolvedStats = null;
+    try {
+      const result = await apiPost('/api/resolve-monster', { name, statBlock });
+      resolvedStats = result;
+    } catch (err) {
+      console.warn('Failed to resolve monster', name, err.message);
+    }
+
+    const id = 'ai_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+    const entry = { id, name, qty, variant };
+
+    if (resolvedStats && resolvedStats.found) {
+      entry.hp = resolvedStats.hp || (variant === 'Minion' ? 1 : 20);
+      entry.maxHp = resolvedStats.maxHp || entry.hp;
+      entry.ac = resolvedStats.ac || 10;
+      entry.cr = resolvedStats.cr || '?';
+      entry.source = resolvedStats.source;
+      entry.actions = resolvedStats.actions || '';
+      entry.bonusActions = resolvedStats.bonusActions || '';
+      entry.legendary = resolvedStats.legendary || '';
+      entry.mythic = resolvedStats.mythic || '';
+      entry.reactions = resolvedStats.reactions || '';
+      entry.special = resolvedStats.special || '';
+      entry.stats = resolvedStats.stats || {};
+      entry.size = resolvedStats.size || '';
+      entry.type = resolvedStats.type || '';
+      entry.alignment = resolvedStats.alignment || '';
+      entry.acDesc = resolvedStats.acDesc || '';
+      entry.hpDice = resolvedStats.hpDice || '';
+      entry.xp = resolvedStats.xp || 0;
+      entry.movements = resolvedStats.movements || [];
+      entry.savingThrows = resolvedStats.savingThrows || [];
+      entry.skillsHtml = resolvedStats.skillsHtml || '';
+      entry.senses = resolvedStats.senses || [];
+      entry.passivePerception = resolvedStats.passivePerception || 0;
+      entry.languages = resolvedStats.languages || '';
+      entry.avatarUrl = resolvedStats.avatarUrl || '';
+      entry.damageResistances = resolvedStats.damageResistances || [];
+      entry.damageImmunities = resolvedStats.damageImmunities || [];
+      entry.damageVulnerabilities = resolvedStats.damageVulnerabilities || [];
+      entry.conditionImmunities = resolvedStats.conditionImmunities || [];
+      entry.lairActions = resolvedStats.lairActions || '';
+      entry.regionalEffects = resolvedStats.regionalEffects || '';
+      resolved++;
+      if (resolvedStats.source === 'homebrew') homebrew++;
+    } else {
+      entry.hp = variant === 'Minion' ? 1 : null;
+      entry.ac = 10;
+      entry.cr = '?';
+    }
+
+    newPool.push(entry);
+    added += qty;
+  }
+
+  // Auto-save as an encounter with calculated difficulty
+  if (newPool.length) {
+    // Use adventureName directly as the encounter name
+    const encounterName = adventureName || 'Imported Encounter';
+    const encName = makeEncounterNameUnique(encounterName);
+    const id = 'enc_' + Date.now();
+    selectedPcIds = new Set(partyCache.map(pc => pc.id));
+    const levels = partyCache.map(pc => pc.level || 1);
+    const crList = [];
+    newPool.forEach(m => {
+      for (let i = 0; i < (m.qty || 1); i++) crList.push(m.cr || '0');
+    });
+    const diff = calculateEncounterDifficulty(levels, crList);
+    encounters.push({ id, name: encName, source: 'adventure', monsters: newPool.map(m => ({ ...m })), selectedPcIds: Array.from(selectedPcIds), difficulty: diff.difficulty, environment: '', createdAt: Date.now() });
+    activeEncounterId = id;
+    encounterPool = newPool.map(m => ({ ...m }));
+    renderEncounterPool();
+    updateDifficultyDisplay();
+    renderEncounterLibrary();
+    saveEncountersToStorage();
+    logRPC('>> ENCOUNTER: Auto-saved "' + encName + '" (' + diff.difficulty + ', ' + newPool.length + ' group(s), ' + resolved + ' resolved, ' + homebrew + ' homebrew)');
+  }
+}
+
+function buildBeatsFromText(text) {
+  // Split by headers (##) or paragraphs, keep meaningful content
+  const allLines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+  logRPC('>> BEATS: Total lines in file: ' + allLines.length);
+
+  // Prefer lines that look like scene headers or substantial paragraphs
+  let lines = allLines.filter(l => l.length > 15 && !l.startsWith('#') && !l.startsWith('- ') && !l.startsWith('* '));
+  if (lines.length === 0) {
+    // Fallback: use any non-empty line if aggressive filter wiped everything
+    lines = allLines.filter(l => l.length > 5);
+  }
+  logRPC('>> BEATS: Filtered to ' + lines.length + ' candidate line(s)');
+
+  adventureBeats = lines.slice(0, 12).map((line, i) => ({
+    title: 'Beat ' + (i + 1),
+    text: line.slice(0, 80) + (line.length > 80 ? '…' : ''),
+    truth: [
+      { believe: 'The situation appears calm.', actual: 'Danger lurks unseen.' },
+      { believe: 'Allies are trustworthy.', actual: 'A traitor hides among them.' }
+    ],
+    clock: { stage: 1, of: 5, dc: 12 + i, effect: 'Environmental hazard intensifies.' }
+  }));
+
+  const list = document.getElementById('beat-list');
+  list.innerHTML = '';
+  if (adventureBeats.length === 0) {
+    logRPC('>> BEATS WARNING: No beats generated. The adventure file may be empty or not contain readable paragraphs.');
+    const li = document.createElement('li');
+    li.textContent = 'No beats found in file.';
+    list.appendChild(li);
+    return;
+  }
+
+  logRPC('>> BEATS: Built ' + adventureBeats.length + ' beat(s)');
+  adventureBeats.forEach((b, i) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'button secondary';
+    btn.textContent = b.title + ': ' + b.text;
+    btn.addEventListener('click', () => loadBeat(i));
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+}
+
+function populateAdventureMetadata() {
+  const tbody = document.getElementById('truth-matrix-body');
+  tbody.innerHTML =
+    '<tr data-beat="0"><td>"The bridge is stable."</td><td>It collapses at 50% load.</td></tr>' +
+    '<tr data-beat="0"><td>"The chest is empty."</td><td>Cursed relic inside.</td></tr>' +
+    '<tr data-beat="1" style="display:none;"><td>"The guard is asleep."</td><td>He is feigning sleep as a trap.</td></tr>' +
+    '<tr data-beat="1" style="display:none;"><td>"The door is unlocked."</td><td>It is magically sealed.</td></tr>';
+  document.getElementById('clock-stage').textContent = '1 / 5';
+  document.getElementById('clock-dc').textContent = '12';
+  document.getElementById('clock-effect').textContent = 'Effect: A faint mist begins to fill the chamber.';
+}
+
+function loadBeat(idx) {
+  currentBeatIndex = idx;
+  const beat = adventureBeats[idx];
+  if (!beat) return;
+  const rows = document.querySelectorAll('#truth-matrix-body tr');
+  rows.forEach(r => {
+    const rIdx = Number(r.dataset.beat);
+    r.style.display = (rIdx === idx) ? '' : 'none';
+  });
+  if (beat.clock) {
+    document.getElementById('clock-stage').textContent = beat.clock.stage + ' / ' + beat.clock.of;
+    document.getElementById('clock-dc').textContent = beat.clock.dc;
+    document.getElementById('clock-effect').textContent = 'Effect: ' + beat.clock.effect;
+  }
+  logRPC('>> SWITCH beat ' + idx + ' -> SUCCESS');
+}
+
+document.getElementById('copy-handout-btn').addEventListener('click', async () => {
+  const text = document.getElementById('handout-text').textContent.trim();
+  try {
+    await navigator.clipboard.writeText(text);
+    logRPC('>> CLIPBOARD: handout copied to OS buffer');
+  } catch (e) {
+    logRPC('>> CLIPBOARD ERROR: ' + e.message);
+  }
+});
+
+document.getElementById('open-soundboard-btn').addEventListener('click', () => {
+  openSoundboardWindow();
+});
+
+/* ============================================================
+   PAGE SWITCHING
+   ============================================================ */
+const tabs = document.querySelectorAll('.tab');
+const pages = {
+  1: document.getElementById('page-1'),
+  2: document.getElementById('page-2'),
+  3: document.getElementById('page-3'),
+  4: document.getElementById('page-4'),
+  5: document.getElementById('page-5')
+};
+
+function activatePage(n) {
+  Object.values(pages).forEach(p => p.classList.remove('active'));
+  if (pages[n]) pages[n].classList.add('active');
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.page == n));
+  if (n === 2) {
+    renderEncounterLibrary();
+    renderPartySelection();
+  }
+  logRPC('>> SWITCH workspace ' + n);
+}
+
+tabs.forEach(t => t.addEventListener('click', () => activatePage(t.dataset.page)));
+document.addEventListener('keydown', e => {
+  if (e.key === 'F1') { e.preventDefault(); activatePage(1); }
+  else if (e.key === 'F2') { e.preventDefault(); activatePage(2); }
+  else if (e.key === 'F3') { e.preventDefault(); activatePage(3); }
+  else if (e.key === 'F4') { e.preventDefault(); activatePage(4); }
+  else if (e.key === 'F5') { e.preventDefault(); activatePage(5); }
+  else if (e.key === 'f' || e.key === 'F') {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    e.preventDefault();
+    toggleFullscreenQR();
+  }
+  else if (e.key === 'Escape') {
+    const lootModal = document.getElementById('loot-modal-overlay');
+    const fsOverlay = document.getElementById('fullscreen-qr-overlay');
+    if (lootModal.classList.contains('active')) { closeLootModal(); return; }
+    if (fsOverlay.classList.contains('active')) { toggleFullscreenQR(); return; }
+  }
+});
+
+/* ============================================================
+   DOMContentLoaded
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  bootSplash();
+  // Phase 3 modal listeners (modals are after script tag)
+  const lootBtn = document.getElementById('generate-loot-btn');
+  if (lootBtn) lootBtn.addEventListener('click', openLootModal);
+  const lootClose = document.getElementById('loot-modal-close');
+  if (lootClose) lootClose.addEventListener('click', closeLootModal);
+  const rollLoot = document.getElementById('roll-loot-btn');
+  if (rollLoot) rollLoot.addEventListener('click', generateLoot);
+  const fsClose = document.getElementById('fullscreen-qr-close');
+  if (fsClose) fsClose.addEventListener('click', toggleFullscreenQR);
+  const fsBtn = document.getElementById('fullscreen-qr-btn');
+  if (fsBtn) fsBtn.addEventListener('click', toggleFullscreenQR);
+  const fsOverlay = document.getElementById('fullscreen-qr-overlay');
+  if (fsOverlay) fsOverlay.addEventListener('click', (e) => { if (e.target.id === 'fullscreen-qr-overlay') toggleFullscreenQR(); });
+});
+
+/* All UI updates are instantaneous — zero animation, zero easing. */
+</script>
+
+<!-- Fullscreen Quick‑Ref Overlay -->
+<div class="fullscreen-qr-overlay" id="fullscreen-qr-overlay">
+  <div style="width:100%;height:100%;display:flex;flex-direction:column;">
+    <div class="fullscreen-qr-header">
+      <h2>Tactical Quick‑Ref</h2>
+      <button class="btn-fs" id="fullscreen-qr-close">⛶ CLOSE</button>
+    </div>
+    <div class="fullscreen-qr-content" id="fullscreen-qr-content"></div>
+  </div>
+</div>
+
+<!-- Loot Generator Modal -->
+<div class="loot-modal-overlay" id="loot-modal-overlay">
+  <div class="loot-modal">
+    <div class="header">
+      <span>Loot Generator</span>
+      <button class="loot-btn-close" id="loot-modal-close">× CLOSE</button>
+    </div>
+    <div class="loot-body" id="loot-body">
+      <div class="loot-controls">
+        <select class="input" id="loot-cr-tier" style="width:auto;">
+          <option value="0-4">CR 0–4</option>
+          <option value="5-10">CR 5–10</option>
+          <option value="11-16">CR 11–16</option>
+          <option value="17+">CR 17+</option>
+        </select>
+        <select class="input" id="loot-type" style="width:auto;">
+          <option value="individual">Individual</option>
+          <option value="hoard">Hoard</option>
+        </select>
+        <button class="button" id="roll-loot-btn" style="width:auto;font-size:12px;">🎲 ROLL</button>
+      </div>
+      <div id="loot-results"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

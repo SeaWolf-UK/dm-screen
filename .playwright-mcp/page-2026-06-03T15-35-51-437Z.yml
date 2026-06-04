@@ -1,0 +1,54 @@
+- generic [ref=e25]:
+  - generic [ref=e26]:
+    - generic [ref=e27] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e28] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e29] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e30] [cursor=pointer]: "F4: ADVENTURES"
+  - generic [ref=e31]: "CAMPAIGN: DEFAULT CAMPAIGN // AI: OLLAMA_LOCAL (llama3.1)"
+  - generic [ref=e32]:
+    - generic [ref=e34]: DDB PARTY TELEMETRY
+    - generic [ref=e35]:
+      - generic [ref=e36]: Detail Inspection Sheet
+      - generic [ref=e37]: Select a character from telemetry.
+    - generic [ref=e38]:
+      - generic [ref=e39]: Party Inventory & Currency Ledger
+      - generic [ref=e41]:
+        - table [ref=e42]:
+          - rowgroup [ref=e43]:
+            - row "Item Qty Weight" [ref=e44]:
+              - columnheader "Item" [ref=e45]
+              - columnheader "Qty" [ref=e46]
+              - columnheader "Weight" [ref=e47]
+          - rowgroup [ref=e48]:
+            - row "Healing Potions 4 2 lb" [ref=e49]:
+              - cell "Healing Potions" [ref=e50]
+              - cell "4" [ref=e51]
+              - cell "2 lb" [ref=e52]
+            - row "Rations (days) 20 10 lb" [ref=e53]:
+              - cell "Rations (days)" [ref=e54]
+              - cell "20" [ref=e55]
+              - cell "10 lb" [ref=e56]
+            - row "Rope (50 ft) 1 5 lb" [ref=e57]:
+              - cell "Rope (50 ft)" [ref=e58]
+              - cell "1" [ref=e59]
+              - cell "5 lb" [ref=e60]
+            - row "Thieves' Tools 1 1 lb" [ref=e61]:
+              - cell "Thieves' Tools" [ref=e62]
+              - cell "1" [ref=e63]
+              - cell "1 lb" [ref=e64]
+            - row "Torches 10 5 lb" [ref=e65]:
+              - cell "Torches" [ref=e66]
+              - cell "10" [ref=e67]
+              - cell "5 lb" [ref=e68]
+            - row "Bedroll 4 12 lb" [ref=e69]:
+              - cell "Bedroll" [ref=e70]
+              - cell "4" [ref=e71]
+              - cell "12 lb" [ref=e72]
+        - generic [ref=e73]:
+          - strong [ref=e74]: "GP:"
+          - text: "245"
+          - strong [ref=e75]: "SP:"
+          - text: "112"
+          - strong [ref=e76]: "CP:"
+          - text: "37"
+  - generic [ref=e40]: "[15:35:35] >> VAULT: tree built"

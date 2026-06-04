@@ -1,0 +1,118 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - generic [ref=e30] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e31] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e32] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e33] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e34] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e35]: "CAMPAIGN: FRIDAY EVENING SESSION // AI: OLLAMA_LOCAL (KIMI-K2.6:CLOUD)"
+  - generic [ref=e139]:
+    - generic [ref=e140]:
+      - generic [ref=e141]: Mini Telemetry
+      - generic [ref=e142]:
+        - generic [ref=e143]: Luna Shadowscale
+        - generic [ref=e144]: AC 16 | LVL 4
+        - generic [ref=e147]: 31/31
+      - generic [ref=e148]:
+        - generic [ref=e149]: ERROR CODE 303
+        - generic [ref=e150]: AC 14 | LVL 4
+        - generic [ref=e153]: 40/40
+      - generic [ref=e154]:
+        - generic [ref=e155]: Chuck
+        - generic [ref=e156]: AC 13 | LVL 4
+        - generic [ref=e159]: 27/29
+      - generic [ref=e160]:
+        - generic [ref=e161]: Cosimo
+        - generic [ref=e162]: AC 14 | LVL 4
+        - generic [ref=e165]: 27/27
+      - generic [ref=e166]:
+        - generic [ref=e167]: Sylvia
+        - generic [ref=e168]: AC 12 | LVL 4
+        - generic [ref=e171]: 26/26
+      - generic [ref=e172]:
+        - generic [ref=e173]: Cafell
+        - generic [ref=e174]: AC 10 | LVL 4
+        - generic [ref=e177]: 27/27
+      - generic [ref=e178]:
+        - generic [ref=e179]: Carric Ravencrest
+        - generic [ref=e180]: AC 12 | LVL 4
+        - generic [ref=e183]: 18/19
+    - generic [ref=e184]:
+      - generic [ref=e185]: Encounter Library
+      - generic [ref=e187]:
+        - button "+ NEW" [ref=e188] [cursor=pointer]
+        - button "💾 SAVE" [ref=e189] [cursor=pointer]
+      - generic [ref=e190]: Monster Database
+      - generic [ref=e191]:
+        - textbox "Search D&D Beyond monsters..." [ref=e192]
+        - combobox [ref=e193]:
+          - option "Any CR" [selected]
+          - option "CR 0"
+          - option "CR 1/8"
+          - option "CR 1/4"
+          - option "CR 1/2"
+          - option "CR 1"
+          - option "CR 2"
+          - option "CR 3"
+          - option "CR 4"
+          - option "CR 5+"
+        - button "🔍 SEARCH" [ref=e194] [cursor=pointer]
+    - generic [ref=e196]:
+      - generic [ref=e197]: Encounter Builder
+      - generic [ref=e198]:
+        - generic [ref=e199]: Party Selection
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - checkbox [checked] [ref=e202]
+            - generic [ref=e203]: Luna Shadowscale (LVL 4)
+          - generic [ref=e204]:
+            - checkbox [checked] [ref=e205]
+            - generic [ref=e206]: ERROR CODE 303 (LVL 4)
+          - generic [ref=e207]:
+            - checkbox [checked] [ref=e208]
+            - generic [ref=e209]: Chuck (LVL 4)
+          - generic [ref=e210]:
+            - checkbox [checked] [ref=e211]
+            - generic [ref=e212]: Cosimo (LVL 4)
+          - generic [ref=e213]:
+            - checkbox [checked] [ref=e214]
+            - generic [ref=e215]: Sylvia (LVL 4)
+          - generic [ref=e216]:
+            - checkbox [checked] [ref=e217]
+            - generic [ref=e218]: Cafell (LVL 4)
+          - generic [ref=e219]:
+            - checkbox [checked] [ref=e220]
+            - generic [ref=e221]: Carric Ravencrest (LVL 4)
+      - generic [ref=e222]:
+        - generic [ref=e223]: Encounter Difficulty
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - generic [ref=e226]: "Easy:"
+            - generic [ref=e227]: –
+          - generic [ref=e228]:
+            - generic [ref=e229]: "Medium:"
+            - generic [ref=e230]: –
+          - generic [ref=e231]:
+            - generic [ref=e232]: "Hard:"
+            - generic [ref=e233]: –
+          - generic [ref=e234]:
+            - generic [ref=e235]: "Deadly:"
+            - generic [ref=e236]: –
+          - generic [ref=e238]: NO ENCOUNTER
+      - generic [ref=e240]:
+        - generic [ref=e241]: Current Encounter
+        - button "CLEAR" [ref=e242] [cursor=pointer]
+      - button "[ INITIALIZE ENGAGEMENT MODE ]" [ref=e243] [cursor=pointer]
+    - generic [ref=e244]:
+      - generic [ref=e245]: Tactical Quick‑Ref
+      - generic [ref=e246]:
+        - generic [ref=e247]:
+          - strong [ref=e248]: "Actions:"
+          - text: —
+        - generic [ref=e249]:
+          - strong [ref=e250]: "Legendary:"
+          - text: —
+        - generic [ref=e251]:
+          - strong [ref=e252]: "Reactions:"
+          - text: —
+  - generic [ref=e136]: "[20:34:13] >> SWITCH workspace 2"

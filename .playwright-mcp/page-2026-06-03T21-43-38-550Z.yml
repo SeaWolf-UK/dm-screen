@@ -1,0 +1,18 @@
+- generic [ref=e27]:
+  - generic [ref=e28]:
+    - generic [ref=e29] [cursor=pointer]: "F1: CHARACTERS"
+    - generic [ref=e30] [cursor=pointer]: "F2: ENCOUNTERS"
+    - generic [ref=e31] [cursor=pointer]: "F3: LORE"
+    - generic [ref=e32] [cursor=pointer]: "F4: ADVENTURES"
+    - generic [ref=e33] [cursor=pointer]: "F5: SOUNDBOARD"
+  - generic [ref=e34]: "CAMPAIGN: TEST CAMPAIGN // AI: OLLAMA_LOCAL (llama3.1)"
+  - generic [ref=e46]:
+    - generic [ref=e47]: TTRPG SOUNDBOARD
+    - generic [ref=e48]:
+      - text: The soundboard opens in its own window to prevent audio memory from competing with the DM Cockpit renderer.
+      - text: Once opened, click the
+      - strong [ref=e49]: 🎵
+      - text: button on any encounter in the Encounter Builder (F2) to auto-generate a soundscape.
+    - button "[ OPEN SOUNDBOARD IN NEW WINDOW ]" [active] [ref=e50] [cursor=pointer]
+    - generic [ref=e51]: Soundboard window opened
+  - generic [ref=e43]: "[21:43:37] >> SND soundboard window opened"
