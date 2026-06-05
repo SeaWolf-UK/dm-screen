@@ -50,6 +50,34 @@ const STATE = {
 };
 
 /* ============================================================
+   GLOBAL RATE LIMITER (sliding window)
+   ============================================================ */
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 60; // Max 60 requests per window
+const rateLimitMap = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const key = `${ip}:${Math.floor(now / RATE_LIMIT_WINDOW)}`;
+  const count = rateLimitMap.get(key) || 0;
+
+  if (count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  rateLimitMap.set(key, count + 1);
+
+  // Cleanup old entries
+  if (count === 0) {
+    setTimeout(() => {
+      rateLimitMap.delete(key);
+    }, RATE_LIMIT_WINDOW);
+  }
+
+  return true;
+}
+
+/* ============================================================
    SECURE LOCAL CONFIG PERSISTENCE
    ============================================================ */
 const CONFIG_DIR = path.join(require('os').homedir(), '.dm-cockpit');
@@ -797,15 +825,38 @@ async function start() {
     }, null, 2));
   }
 
+  // Get client IP for rate limiting
+  function getClientIp(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+           req.connection?.remoteAddress ||
+           req.socket?.remoteAddress ||
+           '127.0.0.1';
+  }
+
   const server = http.createServer(async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // CORS - Restricted for security (localhost only)
+    const origin = req.headers.origin || '';
+    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1')) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
       res.end();
+      return;
+    }
+
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    if (!checkRateLimit(clientIp)) {
+      res.writeHead(429);
+      res.end(JSON.stringify({ error: 'Too many requests. Please wait before trying again.' }));
       return;
     }
 
