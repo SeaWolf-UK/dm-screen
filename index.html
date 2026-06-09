@@ -370,15 +370,9 @@
           </select>
           <select class="input" id="monster-source-filter" style="flex:1;">
             <option value="">Any Book</option>
-            <option value="Monster Manual">Monster Manual</option>
-            <option value="Volo's Guide">Volo's Guide</option>
-            <option value="Mordenkainens Tome">Mordenkainens Tome</option>
-            <option value="Fizbans Treasury">Fizbans Treasury</option>
-            <option value="Curse of Strahd">Curse of Strahd</option>
-            <option value="Out of the Abyss">Out of the Abyss</option>
-            <option value="Storm Kings Thunder">Storm Kings Thunder</option>
-            <option value="Tomb of Annihilation">Tomb of Annihilation</option>
+            <!-- Populated dynamically -->
           </select>
+          <button class="button secondary" id="refresh-sources-btn" title="Refresh book list from D&D Beyond" style="width:auto;padding:6px 8px;font-size:12px;">↻</button>
         </div>
         <button class="button secondary" id="search-monsters-btn" style="width:auto;font-size:12px;margin-bottom:4px;">🔍 SEARCH</button>
         <div id="monster-search-results" class="list" style="max-height:250px;overflow-y:auto;font-size:12px;"></div>
@@ -2254,6 +2248,8 @@ document.getElementById('monster-search').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') searchMonsters();
 });
 
+document.getElementById('refresh-sources-btn').addEventListener('click', refreshSources);
+
 /* ---------- ADDING MONSTERS ---------- */
 async function addMonsterToPool(name, cr, ddbId, edition) {
   const id = 'm' + Date.now() + Math.floor(Math.random() * 1000);
@@ -3745,6 +3741,8 @@ function activatePage(n) {
   if (n === 2) {
     renderEncounterLibrary();
     renderPartySelection();
+    // Initialize sources when encounters page loads
+    initializeSources();
   }
   logRPC('>> SWITCH workspace ' + n);
 }
