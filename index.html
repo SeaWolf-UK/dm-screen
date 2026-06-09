@@ -756,6 +756,166 @@ const ENVIRONMENT_MONSTERS = {
   ]
 };
 
+// Source (Book) cache management
+const SOURCES_CACHE_KEY = 'dm-cockpit-sources-cache';
+const SOURCES_CACHE_TTL = 86400000; // 24 hours in milliseconds
+
+/**
+ * Load sources from cache if valid
+ * @returns {Array|null} Sources array or null if expired/missing
+ */
+function loadSourcesFromCache() {
+  try {
+    const cached = localStorage.getItem(SOURCES_CACHE_KEY);
+    if (!cached) return null;
+
+    const data = JSON.parse(cached);
+    if (!data.sources || !data.timestamp) return null;
+
+    const age = Date.now() - data.timestamp;
+    if (age > SOURCES_CACHE_TTL) {
+      console.log('[sources] Cache expired, fetching fresh...');
+      return null;
+    }
+
+    console.log('[sources] Using cached sources (age:', Math.round(age / 60000), 'min)');
+    return data.sources;
+  } catch (e) {
+    console.error('[sources] Cache read failed:', e.message);
+    return null;
+  }
+}
+
+/**
+ * Save sources to cache
+ * @param {Array} sources - Array of source objects
+ */
+function saveSourcesToCache(sources) {
+  try {
+    const data = {
+      sources,
+      timestamp: Date.now(),
+      version: 1
+    };
+    localStorage.setItem(SOURCES_CACHE_KEY, JSON.stringify(data));
+    console.log('[sources] Cached', sources.length, 'sources');
+  } catch (e) {
+    console.error('[sources] Cache write failed:', e.message);
+  }
+}
+
+/**
+ * Clear sources cache
+ */
+function clearSourcesCache() {
+  try {
+    localStorage.removeItem(SOURCES_CACHE_KEY);
+    console.log('[sources] Cache cleared');
+  } catch (e) {
+    console.error('[sources] Cache clear failed:', e.message);
+  }
+}
+
+/**
+ * Fetch sources from API
+ * @returns {Promise<Array>} Array of source objects
+ */
+async function fetchSources() {
+  const response = await fetch('/api/sources');
+  if (!response.ok) {
+    throw new Error('Failed to fetch sources: ' + response.status);
+  }
+  const data = await response.json();
+  return data.sources || [];
+}
+
+/**
+ * Populate source dropdown
+ * @param {Array} sources - Array of {id, name, shortName}
+ */
+function populateSourceDropdown(sources) {
+  const select = document.getElementById('monster-source-filter');
+  if (!select) return;
+
+  // Keep the "Any Book" option
+  const anyOption = select.querySelector('option[value=""]');
+  select.innerHTML = '';
+  if (anyOption) select.appendChild(anyOption);
+  else select.innerHTML = '<option value="">Any Book</option>';
+
+  // Sort sources alphabetically by name
+  const sorted = [...sources].sort((a, b) => a.name.localeCompare(b.name));
+
+  sorted.forEach(source => {
+    const option = document.createElement('option');
+    option.value = source.id;
+    option.textContent = source.shortName ? `${source.name} (${source.shortName})` : source.name;
+    select.appendChild(option);
+  });
+
+  console.log('[sources] Populated dropdown with', sorted.length, 'sources');
+}
+
+/**
+ * Initialize sources - load from cache or fetch
+ */
+async function initializeSources() {
+  const select = document.getElementById('monster-source-filter');
+  if (!select) return;
+
+  // Try cache first
+  const cached = loadSourcesFromCache();
+  if (cached) {
+    populateSourceDropdown(cached);
+    return;
+  }
+
+  // Fetch from API
+  try {
+    const sources = await fetchSources();
+    populateSourceDropdown(sources);
+    saveSourcesToCache(sources);
+  } catch (err) {
+    console.error('[sources] Failed to load:', err.message);
+    // Use fallback list
+    populateSourceDropdown([
+      { id: 1, name: 'Monster Manual', shortName: 'MM' },
+      { id: 2, name: "Volo's Guide to Monsters", shortName: 'VGM' },
+      { id: 3, name: "Mordenkainen's Tome of Foes", shortName: 'MTF' },
+      { id: 4, name: "Fizban's Treasury of Dragons", shortName: 'FTD' },
+      { id: 5, name: 'Mordenkainen Presents: Monsters of the Multiverse', shortName: 'MPMM' }
+    ]);
+  }
+}
+
+/**
+ * Refresh sources manually
+ */
+async function refreshSources() {
+  const btn = document.getElementById('refresh-sources-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳';
+  }
+
+  clearSourcesCache();
+
+  try {
+    const sources = await fetchSources();
+    populateSourceDropdown(sources);
+    saveSourcesToCache(sources);
+    logRPC('>> SOURCES refreshed from D\&D Beyond');
+  } catch (err) {
+    console.error('[sources] Refresh failed:', err.message);
+    logRPC('>> SOURCES refresh failed: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '↻';
+    }
+  }
+}
+
 // Loot treasure tables by CR tier
 const LOOT_TREASURE = {
   individual: {
@@ -2020,13 +2180,13 @@ function validateMonsterSearch(params) {
 async function searchMonsters() {
   const query = document.getElementById('monster-search').value.trim();
   const crFilter = document.getElementById('monster-cr-filter').value;
+  const envFilter = document.getElementById('monster-environment-filter').value;
   const sourceFilter = document.getElementById('monster-source-filter').value;
   const resultsDiv = document.getElementById('monster-search-results');
 
-  // Validate input
-  const validation = validateMonsterSearch({ name: query, cr: crFilter, source: sourceFilter });
-  if (!validation.valid) {
-    resultsDiv.innerHTML = '<div style="color:#c00;padding:4px;font-size:11px;">' + validation.errors.join('; ') + '</div>';
+  // Validate input - at least one filter required
+  if (!query.trim() && !crFilter && !envFilter && !sourceFilter) {
+    resultsDiv.innerHTML = '<div style="color:#c00;padding:4px;font-size:11px;">Enter a search term or select a filter</div>';
     return;
   }
 
@@ -2036,7 +2196,10 @@ async function searchMonsters() {
   try {
     const params = { name: query };
     if (crFilter) params.cr = crFilter;
-    if (sourceFilter) params.source = sourceFilter;
+    if (envFilter) params.environment = envFilter;
+    if (sourceFilter) params.source = parseInt(sourceFilter, 10);
+
+    logRPC('>> SEARCH monsters: ' + JSON.stringify(params));
     const results = await apiPost('/api/search-monsters', params);
     monsterSearchResults = results.results || [];
     renderMonsterSearchResults();
