@@ -2,58 +2,10 @@
 set -euo pipefail
 
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)"
-
-# If server.js isn't next to us, assume we're the Desktop copy and jump to the project folder
-if [ ! -f "$SCRIPT_PATH/server.js" ]; then
-    PROJECT="${PROJECT_BASE:-$HOME/Projects/DM_Screen}"
-    if [ -f "$PROJECT/server.js" ]; then
-        SCRIPT_PATH="$PROJECT"
-    else
-        echo "ERROR: Cannot find server.js in $SCRIPT_PATH or $PROJECT" >&2
-        read -rp "Press ENTER to close..."
-        exit 1
-    fi
-fi
-
 cd "$SCRIPT_PATH"
 
 msg() { echo "[$(date +%H:%M:%S)] $*"; }
 error() { msg "ERROR: $*" >&2; }
-
-# ===== Kill any previous DM Cockpit sessions =====
-PORT="${PORT:-8765}"
-
-# 1) Kill by port
-OLD_PIDS=$(lsof -t -iTCP:$PORT 2>/dev/null || true)
-if [ -n "$OLD_PIDS" ]; then
-    msg "Stopping old server(s) on port $PORT (PIDs: $OLD_PIDS)..."
-    kill $OLD_PIDS 2>/dev/null || true
-    sleep 2
-    # Force-kill any stragglers
-    for pid in $OLD_PIDS; do
-        kill -0 $pid 2>/dev/null && kill -9 $pid 2>/dev/null || true
-    done
-fi
-
-# 2) Also kill any node processes running server.js from this folder
-OLD_NODE_PIDS=$(pgrep -f "node.*$SCRIPT_PATH/server\.js" 2>/dev/null || true)
-if [ -n "$OLD_NODE_PIDS" ]; then
-    msg "Stopping old node server.js processes..."
-    kill $OLD_NODE_PIDS 2>/dev/null || true
-    sleep 1
-    for pid in $OLD_NODE_PIDS; do
-        kill -0 $pid 2>/dev/null && kill -9 $pid 2>/dev/null || true
-    done
-fi
-
-# Wait until port is actually free
-for i in {1..10}; do
-    if ! lsof -iTCP:$PORT >/dev/null 2>&1; then
-        break
-    fi
-    sleep 0.5
-done
-msg "Port $PORT – OK"
 
 # -- 1. Node.js --
 if ! command -v node &>/dev/null; then
@@ -103,15 +55,38 @@ MCP="${DNDBEYOND_MCP_PATH:-/home/adrian/dndbeyond-mcp}"
 CAMPAIGN="${CAMPAIGN_BASE:-$SCRIPT_PATH/campaign}"
 mkdir -p "$CAMPAIGN"/{Bestiary,Factions,NPCs,Locations}
 if [ ! -f "$CAMPAIGN/party_inventory.json" ]; then
-    cat > "$CAMPAIGN/party_inventory.json" << 'JSONEOF'
-{"items":[{"item":"Potion of Healing","qty":3,"weight":0.5},{"item":"Rope (hempen, 50 ft)","qty":1,"weight":10},{"item":"Adventurer's Pack","qty":4,"weight":7},{"item":"Torch","qty":6,"weight":1},{"item":"Rations (1 day)","qty":10,"weight":2},{"item":"Thieves' Tools","qty":1,"weight":1},{"item":"Scroll of Identify","qty":1,"weight":0}],"currency":{"gp":247,"sp":89,"cp":312}}
-JSONEOF
+    echo '{"items":[{"item":"Potion of Healing","qty":3,"weight":0.5},{"item":"Rope (hempen, 50 ft)","qty":1,"weight":10},{"item":"Adventurer's Pack","qty":4,"weight":7},{"item":"Torch","qty":6,"weight":1},{"item":"Rations (1 day)","qty":10,"weight":2},{"item":"Thieves' Tools","qty":1,"weight":1},{"item":"Scroll of Identify","qty":1,"weight":0}],"currency":{"gp":247,"sp":89,"cp":312}}' > "$CAMPAIGN/party_inventory.json"
 fi
 msg "Campaign base – OK"
 
 # -- 5. Launch --
+PORT="${PORT:-8765}"
 msg "Starting server on port $PORT ..."
 msg "Browser will open automatically. Close this window to stop."
+
+# Start server in background and keep terminal open
+node server.js &
+SERVER_PID=$!
+
+# Wait for server to be ready
+for i in {1..20}; do
+  if curl -s http://localhost:$PORT > /dev/null 2>&1; then
+    break
+  fi
+  sleep 0.2
+done
+
+# Open browser
+sleep 1
+xdg-open "http://localhost:$PORT" || true
+
+msg "Server PID: $SERVER_PID - Running on http://localhost:$PORT"
+msg "Press Ctrl+C to stop the server."
 echo ""
-(sleep 2 && xdg-open "http://localhost:$PORT") &
-node server.js
+
+# Keep script running so terminal stays open
+while kill -0 $SERVER_PID 2>/dev/null; do
+  sleep 1
+done
+
+msg "Server stopped."

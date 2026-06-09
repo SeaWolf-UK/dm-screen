@@ -949,6 +949,7 @@ async function start() {
                   `character:${c.id}`,
                   60000
                 );
+                console.log('CHARACTER DATA:', char.name, 'classes:', char.classes?.length, 'stats:', char.stats?.length, 'skills:', char.skills?.length, 'feats:', char.feats?.length);
                 const level = mods.computeLevel(char);
                 const ac = mods.calculateAc(char);
                 let currentHp = mods.calculateCurrentHp(char);
@@ -970,15 +971,95 @@ async function start() {
                   ins: mods.calculatePassiveSkill(char, 5, 'insight'),
                   inv: mods.calculatePassiveSkill(char, 4, 'investigation')
                 };
-                const saves = [];
+                // Calculate proficiency bonus
+                const proficiencyBonus = Math.ceil(level / 4) + 1;
+
+                // Calculate saving throws with proficiency
+                const savingThrows = {};
+                const abilityAbbrev = { 1: 'STR', 2: 'DEX', 3: 'CON', 4: 'INT', 5: 'WIS', 6: 'CHA' };
                 if (char.stats) {
                   for (const stat of char.stats) {
-                    if (stat.stat?.abbreviation) {
-                      const bonus = Math.floor((stat.value - 10) / 2);
-                      saves.push(`${stat.stat.abbreviation} ${bonus >= 0 ? '+' : ''}${bonus}`);
+                    const abbr = abilityAbbrev[stat.stat?.id] || stat.stat?.abbreviation;
+                    if (abbr) {
+                      const abilityMod = Math.floor((stat.value - 10) / 2);
+                      const isProficient = char.classes?.some(cls =>
+                        cls.definition?.savingThrows?.some(st => st.statId === stat.stat?.id)
+                      );
+                      const totalMod = abilityMod + (isProficient ? proficiencyBonus : 0);
+                      savingThrows[abbr] = {
+                        abilityMod,
+                        proficient: isProficient,
+                        totalMod,
+                        display: `${totalMod >= 0 ? '+' : ''}${totalMod}${isProficient ? '★' : ''}`
+                      };
                     }
                   }
                 }
+
+                // Extract skills with modifiers
+                const skillAbilityMap = {
+                  'Acrobatics': 'DEX', 'Animal Handling': 'WIS', 'Arcana': 'INT', 'Athletics': 'STR',
+                  'Deception': 'CHA', 'History': 'INT', 'Insight': 'WIS', 'Intimidation': 'CHA',
+                  'Investigation': 'INT', 'Medicine': 'WIS', 'Nature': 'INT', 'Perception': 'WIS',
+                  'Performance': 'CHA', 'Persuasion': 'CHA', 'Religion': 'INT', 'Sleight of Hand': 'DEX',
+                  'Stealth': 'DEX', 'Survival': 'WIS'
+                };
+                const skills = {};
+                if (char.skills) {
+                  char.skills.forEach(skill => {
+                    const ability = skillAbilityMap[skill.definition?.name] || 'WIS';
+                    const proficient = skill.proficient || skill.expertise;
+                    const totalMod = skill.bonus || 0;
+                    skills[skill.definition?.name] = {
+                      ability,
+                      proficient,
+                      expertise: skill.expertise,
+                      bonus: totalMod,
+                      display: `${totalMod >= 0 ? '+' : ''}${totalMod}${skill.expertise ? 'E' : skill.proficient ? 'P' : ''}`
+                    };
+                  });
+                }
+
+                // Extract class features
+                const classFeatures = [];
+                if (char.classes) {
+                  char.classes.forEach(cls => {
+                    if (cls.definition?.classFeatures) {
+                      cls.definition.classFeatures.forEach(f => {
+                        classFeatures.push({
+                          name: f.name,
+                          source: cls.definition?.name,
+                          level: f.level
+                        });
+                      });
+                    }
+                  });
+                }
+                const racialFeatures = [];
+                // Extract racial/species features - use racialTraits from race object
+                if (char.race?.racialTraits) {
+                  char.race.racialTraits.forEach(f => {
+                    if (f.definition) {
+                      racialFeatures.push({
+                        name: f.definition.name,
+                        source: char.race?.fullName || "Race"
+                      });
+                    }
+                  });
+                }
+                // Extract feats
+                const feats = [];
+                if (char.feats) {
+                  char.feats.forEach(f => {
+                    if (f.definition) {
+                      feats.push({
+                        name: f.definition.name,
+                        source: 'Feats'
+                      });
+                    }
+                  });
+                }
+
                 party.push({
                   id: char.id,
                   name: char.name,
@@ -992,7 +1073,12 @@ async function start() {
                   conditions: conditions,
                   items: equipped,
                   senses: senses,
-                  saves: saves.join(', ') || '—',
+                  saves: '—',  // replaced with savingThrows
+                  savingThrows: savingThrows,
+                  skills: skills,
+                  classFeatures: classFeatures,
+                  racialFeatures: racialFeatures,
+                  feats: feats,
                   avatarUrl: c.avatarUrl
                 });
               } catch (innerErr) {
