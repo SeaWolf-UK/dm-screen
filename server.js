@@ -1430,6 +1430,12 @@ async function start() {
         return;
       }
 
+      /**
+       * POST /api/search-monsters
+       * Search for monsters with optional filters
+       * Body: { name: string, cr?: string, environment?: string, source?: number }
+       * Response: { jsonrpc: '2.0', result: { results: [...] } }
+       */
       /* ---------- SEARCH MONSTERS ---------- */
       if (pathname === '/api/search-monsters' && req.method === 'POST') {
         const body = await readBody(req);
@@ -1529,6 +1535,12 @@ async function start() {
         return;
       }
 
+      /**
+       * GET /api/sources
+       * Returns list of available source books from D&D Beyond
+       * Response: { sources: [{ id: number, name: string, shortName: string }] }
+       * Caches internally; falls back to hardcoded list on error
+       */
       /* ---------- GET SOURCES (BOOKS) ---------- */
       if (pathname === '/api/sources' && req.method === 'GET') {
         try {
