@@ -1435,19 +1435,64 @@ async function start() {
         const body = await readBody(req);
         const query = body.name || body.query || '';
         const cr = body.cr || '';
+        const environment = body.environment || '';
         const source = body.source || '';
-        console.log('[search-monsters] Query:', query, '| CR:', cr, '| Source:', source);
-        if (!query.trim()) {
+        console.log('[search-monsters] Query:', query, '| CR:', cr, '| Environment:', environment, '| Source:', source);
+
+        // Allow search with just filters (no name query required)
+        if (!query.trim() && !cr && !environment && !source) {
           res.writeHead(400);
-          res.end(JSON.stringify({ error: 'Search query required' }));
+          res.end(JSON.stringify({ error: 'Search query or filter required' }));
           return;
         }
+
         try {
           const mcpParams = { name: query };
           if (cr) mcpParams.cr = cr;
-          if (source) mcpParams.source = source;
+          if (environment) mcpParams.environment = environment; // Note: MCP may ignore this
+
+          // Map source ID to source name for MCP
+          if (source) {
+            const sourceId = parseInt(source, 10);
+            const sourceMap = {
+              1: 'Monster Manual',
+              2: "Volo's Guide to Monsters",
+              3: "Mordenkainen's Tome of Foes",
+              4: "Fizban's Treasury of Dragons",
+              5: 'Bigby Presents: Glory of the Giants',
+              6: 'Mordenkainen Presents: Monsters of the Multiverse',
+              7: 'Curse of Strahd',
+              8: 'Out of the Abyss',
+              9: "Storm King's Thunder",
+              10: 'Tomb of Annihilation',
+              11: 'Waterdeep: Dragon Heist',
+              12: 'Waterdeep: Dungeon of the Mad Mage',
+              13: 'Lost Mine of Phandelver',
+              14: 'Rise of Tiamat',
+              15: 'Hoard of the Dragon Queen',
+              16: "Explorer's Guide to Wildemount",
+              17: "Guildmasters' Guide to Ravnica",
+              18: 'Acquisitions Incorporated',
+              19: 'Icewind Dale: Rime of the Frost Maiden',
+              20: "Van Richten's Guide to Ravenloft",
+              21: 'Strixhaven: A Curriculum of Chaos',
+              22: 'Spelljammer: Adventures in Space',
+              23: 'The Wild Beyond the Witchlight',
+              24: 'Journeys Through the Radiant Citadel',
+              25: 'Dragonlance: Shadow of the Dragon Queen',
+              26: 'Keys from the Golden Vault',
+              27: 'Phandelver and Below: The Shattered Obelisk',
+              28: 'Planescape: Adventures in the Multiverse',
+              29: "Boo's Astral Menagerie",
+              30: 'Vecna: Eve of Ruin',
+              31: 'Quests from the Infinite Staircase'
+            };
+            mcpParams.source = sourceMap[sourceId] || '';
+          }
+
           const result = await mcp.callTool('search_monsters', mcpParams);
           console.log('[search-monsters] Raw content items:', result.content?.length || 0);
+
           // Parse markdown text response from MCP
           let results = [];
           if (result.content && Array.isArray(result.content)) {
@@ -1472,6 +1517,7 @@ async function start() {
               }
             }
           }
+
           console.log('[search-monsters] Parsed', results.length, 'monster(s)');
           res.writeHead(200);
           res.end(JSON.stringify({ jsonrpc: '2.0', result: { results } }));
