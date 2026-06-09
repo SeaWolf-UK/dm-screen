@@ -1486,31 +1486,53 @@ async function start() {
       /* ---------- GET SOURCES (BOOKS) ---------- */
       if (pathname === '/api/sources' && req.method === 'GET') {
         try {
-          // Fetch sources directly from D&D Beyond API
-          const sourcesResult = await fetchWithTimeout('https://www.dndbeyond.com/api/config/json', { timeout: 10000 });
-          const data = await sourcesResult.json();
-          const sources = data.sources || [];
-          console.log('[sources] Loaded', sources.length, 'source(s)');
+          // Use comprehensive fallback list (MCP doesn't have get_sources tool)
+          const sources = [
+            { id: 1, name: 'Monster Manual', shortName: 'MM' },
+            { id: 2, name: "Volo's Guide to Monsters", shortName: 'VGM' },
+            { id: 3, name: "Mordenkainen's Tome of Foes", shortName: 'MTF' },
+            { id: 4, name: "Fizban's Treasury of Dragons", shortName: 'FTD' },
+            { id: 5, name: 'Bigby Presents: Glory of the Giants', shortName: 'BPGG' },
+            { id: 6, name: 'Mordenkainen Presents: Monsters of the Multiverse', shortName: 'MPMM' },
+            { id: 7, name: 'Curse of Strahd', shortName: 'CoS' },
+            { id: 8, name: 'Out of the Abyss', shortName: 'OoA' },
+            { id: 9, name: "Storm King's Thunder", shortName: 'SKT' },
+            { id: 10, name: 'Tomb of Annihilation', shortName: 'ToA' },
+            { id: 11, name: 'Waterdeep: Dragon Heist', shortName: 'WDH' },
+            { id: 12, name: 'Waterdeep: Dungeon of the Mad Mage', shortName: 'WDMM' },
+            { id: 13, name: 'Lost Mine of Phandelver', shortName: 'LMoP' },
+            { id: 14, name: 'Rise of Tiamat', shortName: 'RoT' },
+            { id: 15, name: 'Hoard of the Dragon Queen', shortName: 'HotDQ' },
+            { id: 16, name: "Explorer's Guide to Wildemount", shortName: 'EGW' },
+            { id: 17, name: "Guildmasters' Guide to Ravnica", shortName: 'GGR' },
+            { id: 18, name: 'Acquisitions Incorporated', shortName: 'AI' },
+            { id: 19, name: 'Icewind Dale: Rime of the Frost Maiden', shortName: 'IDRotFM' },
+            { id: 20, name: "Van Richten's Guide to Ravenloft", shortName: 'VRGR' },
+            { id: 21, name: 'Strixhaven: A Curriculum of Chaos', shortName: 'Strix' },
+            { id: 22, name: 'Spelljammer: Adventures in Space', shortName: 'SAiS' },
+            { id: 23, name: 'The Wild Beyond the Witchlight', shortName: 'TWBTW' },
+            { id: 24, name: 'Journeys Through the Radiant Citadel', shortName: 'JTRC' },
+            { id: 25, name: 'Dragonlance: Shadow of the Dragon Queen', shortName: 'DLSoDQ' },
+            { id: 26, name: 'Keys from the Golden Vault', shortName: 'KftGV' },
+            { id: 27, name: 'Phandelver and Below: The Shattered Obelisk', shortName: 'PABTSO' },
+            { id: 28, name: 'Planescape: Adventures in the Multiverse', shortName: 'PAitM' },
+            { id: 29, name: "Boo's Astral Menagerie", shortName: 'BAM' },
+            { id: 30, name: 'Vecna: Eve of Ruin', shortName: 'VEoR' },
+            { id: 31, name: 'Quests from the Infinite Staircase', shortName: 'QftIS' }
+          ];
+
+          console.log('[sources] Returning', sources.length, 'source(s)');
           res.writeHead(200);
-          res.end(JSON.stringify({ sources: sources.map(s => ({ name: s.description || s.name })) }));
+          res.end(JSON.stringify({ sources }));
         } catch (err) {
           console.error('[sources] FAILED:', err.message);
-          // Fallback to common sources
+          // Minimal fallback on error
           res.writeHead(200);
           res.end(JSON.stringify({
             sources: [
-              { name: 'Monster Manual' },
-              { name: 'Volo\'s Guide to Monsters' },
-              { name: 'Mordenkainen\'s Tome of Foes' },
-              { name: 'Fizban\'s Treasury of Dragons' },
-              { name: 'Curse of Strahd' },
-              { name: 'Out of the Abyss' },
-              { name: 'Storm Kings Thunder' },
-              { name: 'Tomb of Annihilation' },
-              { name: 'Waterdeep: Dragon Heist' },
-              { name: 'Waterdeep: Dungeon of the Mad Mage' },
-              { name: 'Lost Mine of Phandelver' },
-              { name: 'D&D Beyond Rules' }
+              { id: 1, name: 'Monster Manual', shortName: 'MM' },
+              { id: 2, name: "Volo's Guide to Monsters", shortName: 'VGM' },
+              { id: 3, name: "Mordenkainen's Tome of Foes", shortName: 'MTF' }
             ]
           }));
         }
