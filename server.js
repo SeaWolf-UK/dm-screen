@@ -22,6 +22,7 @@ function fetchWithTimeout(url, options = {}) {
       let data = '';
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
+        res.ok = res.statusCode >= 200 && res.statusCode < 300;
         res.text = () => Promise.resolve(data);
         res.json = () => { try { return Promise.resolve(JSON.parse(data)); } catch(e) { return Promise.reject(e); } };
         resolve(res);
@@ -84,9 +85,13 @@ const CONFIG_DIR = path.join(require('os').homedir(), '.dm-cockpit');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 const SALT = Buffer.from('tactical-dm-cockpit-salt-v1', 'utf-8');
 
+let derivedKey = null;
 function deriveKey() {
-  const machineData = require('os').userInfo().username + '@' + require('os').hostname();
-  return crypto.scryptSync(machineData, SALT, 32);
+  if (!derivedKey) {
+    const machineData = require('os').userInfo().username + '@' + require('os').hostname();
+    derivedKey = crypto.scryptSync(machineData, SALT, 32);
+  }
+  return derivedKey;
 }
 
 function encrypt(text) {
@@ -415,6 +420,10 @@ async function callOpenAI(endpoint, key, systemPrompt, userContent) {
   const res = await makeHttpRequest(url, {
     headers: { 'Authorization': `Bearer ${key}` }
   }, body);
+  if (!res.body || !Array.isArray(res.body.choices) || !res.body.choices[0] || !res.body.choices[0].message || typeof res.body.choices[0].message.content !== 'string') {
+    console.error('[callOpenAI] Unexpected response shape:', JSON.stringify(res.body).slice(0, 300));
+    throw new Error('OpenAI returned unexpected response shape');
+  }
   return res.body.choices[0].message.content;
 }
 
@@ -432,6 +441,10 @@ async function callClaude(endpoint, key, systemPrompt, userContent) {
       'anthropic-version': '2023-06-01'
     }
   }, body);
+  if (!res.body || !Array.isArray(res.body.content) || !res.body.content[0] || typeof res.body.content[0].text !== 'string') {
+    console.error('[callClaude] Unexpected response shape:', JSON.stringify(res.body).slice(0, 300));
+    throw new Error('Claude returned unexpected response shape');
+  }
   return res.body.content[0].text;
 }
 
@@ -479,6 +492,10 @@ async function callOpenRouter(endpoint, key, systemPrompt, userContent) {
       'X-Title': 'Tactical DM Cockpit'
     }
   }, body);
+  if (!res.body || !Array.isArray(res.body.choices) || !res.body.choices[0] || !res.body.choices[0].message || typeof res.body.choices[0].message.content !== 'string') {
+    console.error('[callOpenRouter] Unexpected response shape:', JSON.stringify(res.body).slice(0, 300));
+    throw new Error('OpenRouter returned unexpected response shape');
+  }
   return res.body.choices[0].message.content;
 }
 
@@ -825,19 +842,25 @@ async function start() {
     }, null, 2));
   }
 
-  // Get client IP for rate limiting
+  // Get client IP for rate limiting (ignore untrusted X-Forwarded-For)
   function getClientIp(req) {
-    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-           req.connection?.remoteAddress ||
+    return req.connection?.remoteAddress ||
            req.socket?.remoteAddress ||
            '127.0.0.1';
   }
 
+  const ALLOWED_ORIGINS = new Set([
+    `http://localhost:${PORT}`,
+    `http://127.0.0.1:${PORT}`,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+  ]);
+
   const server = http.createServer(async (req, res) => {
-    // CORS - Restricted for security (localhost only)
+    // CORS - Restricted for security (exact localhost origins only)
     const origin = req.headers.origin || '';
-    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('::1')) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+    if (!origin || ALLOWED_ORIGINS.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin || '*');
     }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -885,7 +908,7 @@ async function start() {
       /* ---------- SESSION STATUS ---------- */
       if (pathname === '/api/session' && req.method === 'GET') {
         res.writeHead(200);
-        res.end(JSON.stringify({ jsonrpc: '2.0', result: { initialized: STATE.initialized, campaignId: STATE.campaignId, campaignName: STATE.campaignName, aiProvider: STATE.aiProvider, aiEndpoint: STATE.aiEndpoint, aiKey: STATE.aiKey, aiModel: STATE.aiModel } }));
+        res.end(JSON.stringify({ jsonrpc: '2.0', result: { initialized: STATE.initialized, campaignId: STATE.campaignId, campaignName: STATE.campaignName, aiProvider: STATE.aiProvider, aiEndpoint: STATE.aiEndpoint, aiModel: STATE.aiModel } }));
         return;
       }
 
@@ -1728,7 +1751,13 @@ async function start() {
       /* ---------- VAULT TREE ---------- */
       if (pathname === '/api/vault' && req.method === 'GET') {
         const dir = url.searchParams.get('dir') || '';
-        const fullDir = path.join(CAMPAIGN_BASE, dir);
+        const fullDir = path.resolve(path.join(CAMPAIGN_BASE, dir));
+        const basePath = path.resolve(CAMPAIGN_BASE);
+        if (!fullDir.startsWith(basePath + path.sep) && fullDir !== basePath) {
+          res.writeHead(403);
+          res.end(JSON.stringify({ error: 'Access denied' }));
+          return;
+        }
         const results = [];
         try {
           const entries = await fs.readdir(fullDir, { withFileTypes: true });

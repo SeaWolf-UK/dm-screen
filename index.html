@@ -89,6 +89,17 @@
     z-index:999; letter-spacing:0.05em;
   }
 
+  .session-reset-btn {
+    position:fixed; top:0.5vh; right:12px;
+    z-index:1001;
+    padding:4px 10px;
+    font-family:var(--font-display); font-weight:800; font-size:12px;
+    color:var(--muted); background:var(--surface);
+    border:1px solid var(--border); border-radius:4px;
+    cursor:pointer;
+  }
+  .session-reset-btn:hover { color:var(--fg); border-color:var(--accent); }
+
   /* ===== PAGES ===== */
   .page {
     position:absolute; top:7vh; bottom:4vh; left:0; right:0;
@@ -310,6 +321,7 @@
     <div class="tab" data-page="5">F5: SOUNDBOARD</div>
   </div>
   <div class="context-bar" id="context-bar">NO CAMPAIGN LOADED</div>
+  <button id="return-to-splash" class="session-reset-btn" title="Change campaign / AI provider / model">&#x21a9; SESSION</button>
 
   <!-- Page 1: CHARACTERS -->
   <section class="page active grid-3" id="page-1">
@@ -1218,9 +1230,9 @@ function crToNumber(cr) {
 function crToXp(cr) {
   if (!cr) return 10;
   let key = String(cr).trim();
-  if (key === '0.125') key = '1/8';
-  if (key === '0.25') key = '1/4';
-  if (key === '0.5') key = '1/2';
+  if (key === '0.125' || key === '⅛') key = '1/8';
+  if (key === '0.25' || key === '¼') key = '1/4';
+  if (key === '0.5' || key === '½') key = '1/2';
   return MONSTER_XP[key] || MONSTER_XP['0'];
 }
 
@@ -1501,6 +1513,8 @@ document.getElementById('splash-clear').addEventListener('click', async (e) => {
   }
 });
 
+document.getElementById('return-to-splash').addEventListener('click', returnToSplash);
+
 document.getElementById('enter-btn').addEventListener('click', async () => {
   const campaignId = document.getElementById('splash-campaign').value;
   const campaignName = document.getElementById('splash-campaign').selectedOptions[0].text.split(' — ')[0];
@@ -1579,6 +1593,33 @@ function startTelemetry() {
   telemetryInterval = setInterval(pollPartyTelemetry, 60000);
 }
 
+function returnToSplash() {
+  // Stop active polling so we don't waste requests while on the splash screen.
+  if (telemetryInterval) { clearInterval(telemetryInterval); telemetryInterval = null; }
+
+  // Reset transient tactical state so the next session starts clean.
+  round = 1;
+  currentInitiativeIndex = 0;
+  encounterPool = [];
+  selectedMonsterIdx = -1;
+  initiativeOrder = [];
+  adventureBeats = [];
+  currentBeatIndex = -1;
+  combatLog = [];
+
+  // Reset the session display.
+  document.getElementById('context-bar').textContent = 'NO CAMPAIGN LOADED';
+
+  // Swap visibility: hide main app, show splash screen.
+  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('splash-screen').style.display = 'flex';
+
+  logRPC('>> SESSION: Returning to splash screen');
+
+  // Refresh the campaign list and re-populate the form from the server session.
+  bootSplash();
+}
+
 function renderCharacterCards(party) {
   const c1 = document.getElementById('p1-col-1');
   c1.innerHTML = '<div class="header">DDB PARTY TELEMETRY</div>';
@@ -1597,31 +1638,43 @@ function renderCharacterCards(party) {
     card.dataset.id = pc.id;
     card.style.cursor = 'pointer';
     card.innerHTML =
-      '<div class="heavy">' + pc.name + ' <span style="color:var(--muted);font-size:12px;">' + pc.cls + '</span></div>' +
-      '<div class="grid-square"><div>AC ' + pc.ac + '</div><div>LVL ' + pc.level + '</div></div>' +
+      '<div class="heavy">' + escapeHtml(pc.name) + ' <span style="color:var(--muted);font-size:12px;">' + escapeHtml(pc.cls) + '</span></div>' +
+      '<div class="grid-square"><div>AC ' + escapeHtml(pc.ac) + '</div><div>LVL ' + escapeHtml(pc.level) + '</div></div>' +
       '<div class="hp-bar">' +
         '<div class="hp-fill" style="width:' + pct + '%"></div>' +
-        '<div class="hp-text">' + pc.hp + ' / ' + pc.maxHp + ' HP</div>' +
+        '<div class="hp-text">' + escapeHtml(pc.hp) + ' / ' + escapeHtml(pc.maxHp) + ' HP</div>' +
       '</div>' +
       slotHtml +
-      (pc.conditions.length ? '<div style="margin-top:4px;">' + pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') + '</div>' : '');
+      (pc.conditions.length ? '<div style="margin-top:4px;">' + pc.conditions.map(c => '<span class="condition-tag">' + escapeHtml(c) + '</span>').join('') + '</div>' : '');
     card.addEventListener('click', () => showCharacterDetail(pc));
     c1.appendChild(card);
   });
 }
 
+function formatSavingThrows(pc) {
+  if (pc.savingThrows && typeof pc.savingThrows === 'object') {
+    return Object.entries(pc.savingThrows)
+      .map(([stat, data]) => {
+        const display = data && (data.display || (typeof data.totalMod === 'number' ? (data.totalMod >= 0 ? '+' : '') + data.totalMod : null));
+        return display ? stat + ' ' + display : stat;
+      })
+      .join(', ') || '—';
+  }
+  return pc.saves || '—';
+}
+
 function showCharacterDetail(pc) {
   const sheet = document.getElementById('detail-sheet');
   sheet.innerHTML =
-    '<div class="heavy">' + pc.name + '</div>' +
-    '<div><strong>Class:</strong> ' + pc.cls + '</div>' +
-    '<div><strong>Level:</strong> ' + pc.level + '</div>' +
-    '<div><strong>AC:</strong> ' + pc.ac + '</div>' +
-    '<div><strong>HP:</strong> ' + pc.hp + ' / ' + pc.maxHp + ' ' + (pc.tempHp ? '(+' + pc.tempHp + ' temp)' : '') + '</div>' +
-    '<div><strong>Saving Throws:</strong> ' + pc.saves + '</div>' +
-    '<div><strong>Conditions:</strong> ' + (pc.conditions.length ? pc.conditions.map(c => '<span class="condition-tag">' + c + '</span>').join('') : 'None') + '</div>' +
-    '<div><strong>Equipped:</strong> ' + (pc.items.length ? pc.items.join(', ') : 'None') + '</div>' +
-    '<div><strong>Senses:</strong> Per ' + pc.senses.per + ', Ins ' + pc.senses.ins + ', Inv ' + pc.senses.inv + '</div>';
+    '<div class="heavy">' + escapeHtml(pc.name) + '</div>' +
+    '<div><strong>Class:</strong> ' + escapeHtml(pc.cls) + '</div>' +
+    '<div><strong>Level:</strong> ' + escapeHtml(pc.level) + '</div>' +
+    '<div><strong>AC:</strong> ' + escapeHtml(pc.ac) + '</div>' +
+    '<div><strong>HP:</strong> ' + escapeHtml(pc.hp) + ' / ' + escapeHtml(pc.maxHp) + ' ' + (pc.tempHp ? '(+' + escapeHtml(pc.tempHp) + ' temp)' : '') + '</div>' +
+    '<div><strong>Saving Throws:</strong> ' + escapeHtml(formatSavingThrows(pc)) + '</div>' +
+    '<div><strong>Conditions:</strong> ' + (pc.conditions.length ? pc.conditions.map(c => '<span class="condition-tag">' + escapeHtml(c) + '</span>').join('') : 'None') + '</div>' +
+    '<div><strong>Equipped:</strong> ' + (pc.items.length ? escapeHtml(pc.items.join(', ')) : 'None') + '</div>' +
+    '<div><strong>Senses:</strong> Per ' + escapeHtml(pc.senses.per) + ', Ins ' + escapeHtml(pc.senses.ins) + ', Inv ' + escapeHtml(pc.senses.inv) + '</div>';
   logRPC('>> INSPECT character "' + pc.name + '" (id:' + pc.id + ') -> SUCCESS');
 }
 
@@ -1633,9 +1686,9 @@ function renderMiniTelemetry(party) {
     const card = document.createElement('div');
     card.className = 'card' + (pc.hp <= 0 ? ' dead' : '');
     card.innerHTML =
-      '<div class="heavy">' + pc.name + '</div>' +
-      '<div>AC ' + pc.ac + ' | LVL ' + pc.level + '</div>' +
-      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div><div class="hp-text">' + pc.hp + '/' + pc.maxHp + '</div></div>';
+      '<div class="heavy">' + escapeHtml(pc.name) + '</div>' +
+      '<div>AC ' + escapeHtml(pc.ac) + ' | LVL ' + escapeHtml(pc.level) + '</div>' +
+      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div><div class="hp-text">' + escapeHtml(pc.hp) + '/' + escapeHtml(pc.maxHp) + '</div></div>';
     col.appendChild(card);
   });
 }
@@ -2061,7 +2114,7 @@ function generateLoot() {
   container.innerHTML = '';
 
   if (type === 'individual') {
-    const table = TREASURE_TABLES.individual[tier];
+    const table = LOOT_TREASURE.individual[tier];
     if (!table) { container.innerHTML = '<div style="color:#c00;">No table for this tier.</div>'; return; }
     const roll = rollPercentile();
     const entry = pickFromRanges(table, roll);
@@ -2078,7 +2131,7 @@ function generateLoot() {
   }
 
   // Hoard
-  const hoard = TREASURE_TABLES.hoard[tier];
+  const hoard = LOOT_TREASURE.hoard[tier];
   if (!hoard) { container.innerHTML = '<div style="color:#c00;">No hoard table for this tier.</div>'; return; }
 
   let html = '<div class="loot-result-group"><h4>Treasure Hoard (CR ' + tier + ')</h4>';
@@ -2217,10 +2270,10 @@ function renderMonsterSearchResults() {
     const editionBadge = m.edition === '5.5E' ? '<span class="badge" style="background:#a4c;background-color:oklch(60% 0.12 300);color:#fff;">5.5E</span>' : (m.edition === '5E' ? '<span class="badge" style="background:#48c;background-color:oklch(55% 0.1 250);color:#fff;">5E</span>' : '');
     row.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-        '<div style="display:flex;align-items:center;gap:4px;"><strong>' + m.name + '</strong>' + editionBadge + '<span class="cr-tag">CR ' + (m.cr || '?') + '</span></div>' +
-        '<button class="add-btn" style="background:#2a4;color:#fff;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;" data-name="' + m.name + '" data-cr="' + (m.cr || '?') + '" data-id="' + (m.id || '') + '" data-edition="' + (m.edition || '') + '">+ ADD</button>' +
+        '<div style="display:flex;align-items:center;gap:4px;"><strong>' + escapeHtml(m.name) + '</strong>' + editionBadge + '<span class="cr-tag">CR ' + escapeHtml(m.cr || '?') + '</span></div>' +
+        '<button class="add-btn" style="background:#2a4;color:#fff;border:none;border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;" data-name="' + escapeHtml(m.name) + '" data-cr="' + escapeHtml(m.cr || '?') + '" data-id="' + escapeHtml(m.id || '') + '" data-edition="' + escapeHtml(m.edition || '') + '">+ ADD</button>' +
       '</div>' +
-      '<div class="cr-tag">' + (m.type || '') + (m.size ? ' • ' + m.size : '') + (m.source ? ' • ' + m.source : '') + '</div>';
+      '<div class="cr-tag">' + escapeHtml(m.type || '') + (m.size ? ' • ' + escapeHtml(m.size) : '') + (m.source ? ' • Source: ' + escapeHtml(m.source) : '') + '</div>';
     resultsDiv.appendChild(row);
   });
 
@@ -2293,7 +2346,8 @@ async function addMonsterToPool(name, cr, ddbId, edition) {
       logRPC('>> MONSTER: Resolved "' + name + '" from ' + result.source + ' (' + entry.edition + ', HP ' + entry.hp + ', AC ' + entry.ac + ', CR ' + entry.cr + ')');
     }
   } catch (e) {
-    // Silently fail
+    entry.unresolved = true;
+    logRPC('>> MONSTER: Failed to resolve "' + name + '": ' + e.message);
   }
 
   encounterPool.push(entry);
@@ -2313,8 +2367,8 @@ function renderEncounterPool() {
     const row = document.createElement('div');
     row.className = 'monster-card' + (idx === selectedMonsterIdx ? ' selected' : '');
     row.dataset.idx = idx;
-    const hpText = m.maxHp ? m.hp + '/' + m.maxHp + ' HP' : (m.variant === 'Minion' ? '1 HP' : '—');
-    const acText = m.ac ? 'AC ' + m.ac : '';
+    const hpText = m.maxHp ? escapeHtml(m.hp) + '/' + escapeHtml(m.maxHp) + ' HP' : (m.variant === 'Minion' ? '1 HP' : '—');
+    const acText = m.ac ? 'AC ' + escapeHtml(m.ac) : '';
     const xpEach = crToXp(m.cr);
     const totalXp = xpEach * (m.qty || 1);
     const sourceBadge = m.source === 'ddb' ? '<span class="badge badge-ddb">★ DDB</span>' : (m.source === 'homebrew' ? '<span class="badge badge-homebrew">🏠 HB</span>' : '');
@@ -2322,18 +2376,18 @@ function renderEncounterPool() {
     row.innerHTML =
       '<div style="flex:1;min-width:0;">' +
         '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">' +
-          '<strong>' + m.name + '</strong>' + editionBadge + sourceBadge +
+          '<strong>' + escapeHtml(m.name) + '</strong>' + editionBadge + sourceBadge +
           '<span class="badge badge-xp">' + totalXp + ' XP</span>' +
         '</div>' +
         '<div style="color:var(--muted);font-size:11px;">' +
-          'CR ' + m.cr + (acText ? ' • ' + acText : '') + ' • ' + hpText +
+          'CR ' + escapeHtml(m.cr) + (acText ? ' • ' + acText : '') + ' • ' + hpText +
         '</div>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' +
         '<button class="dec-btn" style="background:#222;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">–</button>' +
-        '<span class="qty" style="font-weight:800;min-width:18px;text-align:center;">' + m.qty + '</span>' +
+        '<span class="qty" style="font-weight:800;min-width:18px;text-align:center;">' + escapeHtml(m.qty) + '</span>' +
         '<button class="inc-btn" style="background:#222;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">+</button>' +
-        '<button class="var-btn" style="background:#222;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">' + m.variant + '</button>' +
+        '<button class="var-btn" style="background:#222;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">' + escapeHtml(m.variant) + '</button>' +
         '<button class="rem-btn" style="background:#500;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:12px;">×</button>' +
       '</div>';
     pool.appendChild(row);
@@ -2396,8 +2450,11 @@ function removeMonster(btn) {
 
 /* ---------- COMBAT ENGAGEMENT ---------- */
 function initiativeDexMod(entry) {
-  if (entry.kind === 'npc' && entry.stats && entry.stats.DEX) {
-    return Math.floor((entry.stats.DEX - 10) / 2);
+  if (entry.kind === 'npc' && entry.stats) {
+    const dex = entry.stats.DEX ?? entry.stats.dex;
+    if (typeof dex === 'number') {
+      return Math.floor((dex - 10) / 2);
+    }
   }
   // PCs don't have stats stored here; DM enters initiative manually
   return 0;
@@ -2478,12 +2535,12 @@ function showInitiativeEntry() {
     const dexText = ent.kind === 'npc' && dexMod !== 0 ? ' (DEX ' + (dexMod >= 0 ? '+' : '') + dexMod + ')' : '';
     const isNpc = ent.kind === 'npc';
     row.innerHTML =
-      '<div class="name">' + ent.name + '</div>' +
+      '<div class="name">' + escapeHtml(ent.name) + '</div>' +
       '<div style="display:flex;align-items:center;gap:6px;">' +
         '<label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:2px;cursor:pointer;">' +
           '<input type="checkbox" class="adv-check" data-idx="' + i + '" style="accent-color:var(--accent);"> Adv' +
         '</label>' +
-        (isNpc ? '<button class="roll-btn" data-idx="' + i + '" title="Roll 1d20 + DEX modifier">🎲 Roll' + dexText + '</button>' : '') +
+        (isNpc ? '<button class="roll-btn" data-idx="' + i + '" title="Roll 1d20 + DEX modifier">🎲 Roll' + escapeHtml(dexText) + '</button>' : '') +
         '<input class="init-input" type="number" data-idx="' + i + '" placeholder="Init" value="" />' +
       '</div>';
     list.appendChild(row);
@@ -2494,12 +2551,12 @@ function showInitiativeEntry() {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
       const ent = initiativeOrder[idx];
-      const advCheck = list.querySelector('.adv-check[data-idx="' + idx + '"');
+      const advCheck = list.querySelector('.adv-check[data-idx="' + idx + '"]');
       const useAdv = advCheck && advCheck.checked;
       let roll = rollD20();
       if (useAdv) roll = Math.max(roll, rollD20());
       const result = roll + initiativeDexMod(ent);
-      const input = list.querySelector('.init-input[data-idx="' + idx + '"');
+      const input = list.querySelector('.init-input[data-idx="' + idx + '"]');
       if (input) input.value = result;
     });
   });
@@ -2657,8 +2714,8 @@ function renderInitiativeLadder() {
     row.style.alignItems = 'flex-start';
     row.style.gap = '2px';
 
-    const hpText = ent.kind === 'pc' ? ent.hp + '/' + ent.maxHp : '' + ent.hp;
-    const initText = ent.initiative !== undefined ? 'INIT ' + ent.initiative + ' • ' : '';
+    const hpText = ent.kind === 'pc' ? escapeHtml(ent.hp) + '/' + escapeHtml(ent.maxHp) : '' + escapeHtml(ent.hp);
+    const initText = ent.initiative !== undefined ? 'INIT ' + escapeHtml(ent.initiative) + ' • ' : '';
     const deadLabel = isDead ? ' <span style="color:#f44;font-weight:800;">[DEAD]</span>' : '';
     const bloodiedLabel = !isDead && ent.hp > 0 && ent.hp <= Math.floor((ent.maxHp || 1) * 0.5) ? '<span class="bloodied-chip">🩸 BLOODIED</span>' : '';
 
@@ -2672,7 +2729,7 @@ function renderInitiativeLadder() {
     let condHtml = '';
     if (ent.conditions && ent.conditions.length) {
       condHtml = ent.conditions.map((c, ci) =>
-        '<span class="cond-chip">' + c + '<button class="cond-remove" data-idx="' + i + '" data-ci="' + ci + '" title="Remove">×</button></span>'
+        '<span class="cond-chip">' + escapeHtml(c) + '<button class="cond-remove" data-idx="' + i + '" data-ci="' + ci + '" title="Remove">×</button></span>'
       ).join('');
     }
 
@@ -2682,15 +2739,15 @@ function renderInitiativeLadder() {
 
     // Legendary Resistance badge
     const lrBadge = ent.kind === 'npc' && ent.legendaryResistances !== null && ent.legendaryResistances !== undefined ?
-      '<span class="badge-lr' + (ent.legendaryResistances <= 0 ? ' empty' : '') + '" data-idx="' + i + '" title="Click to use Legendary Resistance">LR: ' + ent.legendaryResistances + '</span>' : '';
+      '<span class="badge-lr' + (ent.legendaryResistances <= 0 ? ' empty' : '') + '" data-idx="' + i + '" title="Click to use Legendary Resistance">LR: ' + escapeHtml(ent.legendaryResistances) + '</span>' : '';
 
     // Lair / Regional icons
-    const lairIcon = ent.lairActions ? '<span class="icon-lair" title="Lair Actions: ' + ent.lairActions.replace(/"/g, '&quot;').slice(0, 120) + (ent.lairActions.length > 120 ? '…' : '') + '">🏰</span>' : '';
-    const regIcon = ent.regionalEffects ? '<span class="icon-regional" title="Regional Effects: ' + ent.regionalEffects.replace(/"/g, '&quot;').slice(0, 120) + (ent.regionalEffects.length > 120 ? '…' : '') + '">🌎</span>' : '';
+    const lairIcon = ent.lairActions ? '<span class="icon-lair" title="Lair Actions: ' + escapeHtml(ent.lairActions.slice(0, 120)) + (ent.lairActions.length > 120 ? '…' : '') + '">🏰</span>' : '';
+    const regIcon = ent.regionalEffects ? '<span class="icon-regional" title="Regional Effects: ' + escapeHtml(ent.regionalEffects.slice(0, 120)) + (ent.regionalEffects.length > 120 ? '…' : '') + '">🌎</span>' : '';
 
     // Temp HP controls
     const tempControls = ent.kind === 'npc' ?
-      '<div class="temp-hp-row"><span style="font-size:11px;color:var(--muted);">Temp HP:</span><input class="temp-hp-input" type="number" data-idx="' + i + '" placeholder="+" min="0" value="" /><button class="btn-temp" data-idx="' + i + '">+ ADD</button>' + (ent.tempHp > 0 ? '<span class="temp-display">+' + ent.tempHp + ' temp</span>' : '') + '</div>' : '';
+      '<div class="temp-hp-row"><span style="font-size:11px;color:var(--muted);">Temp HP:</span><input class="temp-hp-input" type="number" data-idx="' + i + '" placeholder="+" min="0" value="" /><button class="btn-temp" data-idx="' + i + '">+ ADD</button>' + (ent.tempHp > 0 ? '<span class="temp-display">+' + escapeHtml(ent.tempHp) + ' temp</span>' : '') + '</div>' : '';
 
     // Condition add dropdown
     const condAdd = ent.kind === 'npc' ?
@@ -2707,7 +2764,7 @@ function renderInitiativeLadder() {
       '<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">' +
         '<div style="flex:1;min-width:0;">' +
           '<span class="active-indicator" style="display:' + (i === currentInitiativeIndex ? 'inline-block' : 'none') + '"></span>' +
-          '<strong>' + ent.name + '</strong>' + deadLabel + bloodiedLabel + ' ' + initText + '(AC ' + ent.ac + ')' +
+          '<strong>' + escapeHtml(ent.name) + '</strong>' + deadLabel + bloodiedLabel + ' ' + initText + '(AC ' + escapeHtml(ent.ac) + ')' +
           reactionBtn + lrBadge + lairIcon + regIcon +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">' + dmgControls + '</div>' +
@@ -2734,7 +2791,7 @@ function renderInitiativeLadder() {
   list.querySelectorAll('.btn-dmg, .btn-heal').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
-      const input = list.querySelector('.dmg-input[data-idx="' + idx + '"');
+      const input = list.querySelector('.dmg-input[data-idx="' + idx + '"]');
       const amount = Number(input ? input.value : 0);
       if (!amount || amount <= 0) return;
       const delta = btn.dataset.delta === '-1' ? -amount : amount;
@@ -2781,7 +2838,7 @@ function renderInitiativeLadder() {
   list.querySelectorAll('.btn-temp').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
-      const input = list.querySelector('.temp-hp-input[data-idx="' + idx + '"');
+      const input = list.querySelector('.temp-hp-input[data-idx="' + idx + '"]');
       const amount = Number(input ? input.value : 0);
       if (amount > 0) { modTempHp(idx, amount); if (input) input.value = ''; }
     });
@@ -2803,9 +2860,9 @@ function showInitiativeQuickRef(idx) {
   if (ent.kind === 'npc') {
     html += renderMonsterQuickRef(ent);
   } else {
-    html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + ent.name + '</div>';
+    html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + escapeHtml(ent.name) + '</div>';
     html += '<div style="color:var(--muted);font-style:italic;margin-bottom:6px;">Player Character</div>';
-    html += '<div style="margin-bottom:6px;"><strong>AC</strong> ' + ent.ac + ' <span style="color:var(--muted)">|</span> <strong>HP</strong> ' + ent.hp + '/' + ent.maxHp + ' <span style="color:var(--muted)">|</span> <strong>Init</strong> ' + (ent.initiative || '—') + '</div>';
+    html += '<div style="margin-bottom:6px;"><strong>AC</strong> ' + escapeHtml(ent.ac) + ' <span style="color:var(--muted)">|</span> <strong>HP</strong> ' + escapeHtml(ent.hp) + '/' + escapeHtml(ent.maxHp) + ' <span style="color:var(--muted)">|</span> <strong>Init</strong> ' + escapeHtml(ent.initiative || '—') + '</div>';
     html += '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;">Use the character detail sheet (F1) for full PC stats.</div>';
   }
   container.innerHTML = html;
@@ -2820,7 +2877,7 @@ function showInitiativeQuickRef(idx) {
     else r.classList.remove('selected');
   });
 
-  logRPC('>> QUICKREF loaded "' + ent.name + '" from initiative ladder');
+  logRPC('>> QUICKREF loaded "' + escapeHtml(ent.name) + '" from initiative ladder');
 }
 
 function activateTurn(newIdx, oldIdx) {
@@ -2942,6 +2999,16 @@ function modTempHp(idx, amount) {
   logRPC('>> ' + ent.name + ' gains +' + amount + ' temp HP (total: ' + ent.tempHp + ')');
 }
 
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function abilityMod(score) {
   const mod = Math.floor((score - 10) / 2);
   return (mod >= 0 ? '+' : '') + mod;
@@ -2953,34 +3020,34 @@ function renderMonsterQuickRef(m) {
 
   // Monster image
   if (m.avatarUrl) {
-    html += '<img src="' + m.avatarUrl + '" style="max-height:160px;width:auto;border-radius:4px;object-fit:cover;display:block;margin-bottom:8px;" alt="' + (m.name || '') + '">';
+    html += '<img src="' + escapeHtml(m.avatarUrl) + '" style="max-height:160px;width:auto;border-radius:4px;object-fit:cover;display:block;margin-bottom:8px;" alt="' + escapeHtml(m.name || 'Unknown') + '">';
   }
 
   // Header
   const subtitle = [m.size, m.type, m.alignment].filter(Boolean).join(' ');
-  html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + (m.name || 'Unknown') + '</div>';
-  if (subtitle) html += '<div style="color:var(--muted);font-style:italic;margin-bottom:6px;">' + subtitle + '</div>';
+  html += '<div style="font-family:var(--font-display);font-weight:800;font-size:16px;margin-bottom:2px;">' + escapeHtml(m.name || 'Unknown') + '</div>';
+  if (subtitle) html += '<div style="color:var(--muted);font-style:italic;margin-bottom:6px;">' + escapeHtml(subtitle) + '</div>';
 
   // Core stats line
   const coreStats = [];
-  if (m.ac) coreStats.push('<strong>AC</strong> ' + m.ac + (m.acDesc ? ' ' + m.acDesc : ''));
-  if (m.hp) coreStats.push('<strong>HP</strong> ' + m.hp + (m.hpDice ? ' (' + m.hpDice + ')' : ''));
-  if (m.cr) coreStats.push('<strong>CR</strong> ' + m.cr + (m.xp ? ' (' + m.xp.toLocaleString() + ' XP)' : ''));
+  if (m.ac) coreStats.push('<strong>AC</strong> ' + escapeHtml(m.ac) + (m.acDesc ? ' ' + escapeHtml(m.acDesc) : ''));
+  if (m.hp) coreStats.push('<strong>HP</strong> ' + escapeHtml(m.hp) + (m.hpDice ? ' (' + escapeHtml(m.hpDice) + ')' : ''));
+  if (m.cr) coreStats.push('<strong>CR</strong> ' + escapeHtml(m.cr) + (m.xp ? ' (' + m.xp.toLocaleString() + ' XP)' : ''));
   if (coreStats.length) html += '<div style="margin-bottom:6px;">' + coreStats.join(' <span style="color:var(--muted)">|</span> ') + '</div>';
 
   // Resistance / Vulnerability / Immunity cheat sheet
   const rvRows = [];
   if (m.damageResistances && m.damageResistances.length) {
-    rvRows.push('<span style="font-size:11px;"><strong style="color:#48c;">Resistant</strong> ' + m.damageResistances.join(', ') + '</span>');
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#48c;">Resistant</strong> ' + escapeHtml(m.damageResistances.join(', ')) + '</span>');
   }
   if (m.damageImmunities && m.damageImmunities.length) {
-    rvRows.push('<span style="font-size:11px;"><strong style="color:#2a5;">Immune</strong> ' + m.damageImmunities.join(', ') + '</span>');
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#2a5;">Immune</strong> ' + escapeHtml(m.damageImmunities.join(', ')) + '</span>');
   }
   if (m.damageVulnerabilities && m.damageVulnerabilities.length) {
-    rvRows.push('<span style="font-size:11px;"><strong style="color:#f44;">Vulnerable</strong> ' + m.damageVulnerabilities.join(', ') + '</span>');
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#f44;">Vulnerable</strong> ' + escapeHtml(m.damageVulnerabilities.join(', ')) + '</span>');
   }
   if (m.conditionImmunities && m.conditionImmunities.length) {
-    rvRows.push('<span style="font-size:11px;"><strong style="color:#a4c;">Condition Immune</strong> ' + m.conditionImmunities.join(', ') + '</span>');
+    rvRows.push('<span style="font-size:11px;"><strong style="color:#a4c;">Condition Immune</strong> ' + escapeHtml(m.conditionImmunities.join(', ')) + '</span>');
   }
   if (rvRows.length) {
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;padding:4px;background:#151515;border-radius:4px;border:1px solid var(--border);">' + rvRows.join('') + '</div>';
@@ -2988,49 +3055,42 @@ function renderMonsterQuickRef(m) {
 
   // Speed
   if (m.movements && m.movements.length) {
-    const speeds = m.movements.map(mv => (mv.name === 'walk' ? mv.speed + ' ft.' : mv.name + ' ' + mv.speed + ' ft.'));
+    const speeds = m.movements.map(mv => (mv.name === 'walk' ? escapeHtml(mv.speed) + ' ft.' : escapeHtml(mv.name) + ' ' + escapeHtml(mv.speed) + ' ft.'));
     html += '<div style="margin-bottom:6px;"><strong>Speed</strong> ' + speeds.join(', ') + '</div>';
   }
 
-  // Ability scores
+  // Ability scores (handle both upper- and lower-case keys)
   if (m.stats) {
     const statOrder = ['STR','DEX','CON','INT','WIS','CHA'];
     const statCells = statOrder.map(s => {
-      const val = m.stats[s];
-      return val !== undefined ? '<span style="display:inline-block;text-align:center;min-width:42px;"><strong>' + s + '</strong><br>' + val + ' (' + abilityMod(val) + ')</span>' : '';
+      const val = m.stats[s] ?? m.stats[s.toLowerCase()];
+      return val !== undefined ? '<span style="display:inline-block;text-align:center;min-width:42px;"><strong>' + s + '</strong><br>' + escapeHtml(val) + ' (' + abilityMod(val) + ')</span>' : '';
     }).filter(Boolean);
     if (statCells.length) html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;padding:4px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">' + statCells.join('') + '</div>';
-  }
-
-  // Special Traits (abilities, reactions, etc.)
-  if (m.special) {
-    html += '<div style="margin-top:6px;padding:4px;background:#151515;border-radius:4px;font-size:12px;color:#aaa;">' +
-      '<strong style="color:#68b;">Special Traits:</strong> ' + m.special.replace(/\n/g, '<br>') +
-      '</div>';
   }
 
   // Saves, Skills, Senses, Languages
   const infoLines = [];
   if (m.savingThrows && m.savingThrows.length) {
-    infoLines.push('<strong>Saving Throws</strong> ' + m.savingThrows.map(s => s.stat + ' +' + s.bonus).join(', '));
+    infoLines.push('<strong>Saving Throws</strong> ' + escapeHtml(m.savingThrows.map(s => s.stat + ' +' + s.bonus).join(', ')));
   }
-  if (m.skillsHtml) infoLines.push('<strong>Skills</strong> ' + m.skillsHtml);
+  if (m.skillsHtml) infoLines.push('<strong>Skills</strong> ' + escapeHtml(m.skillsHtml));
   if (m.senses && m.senses.length) {
-    const senseStrs = m.senses.map(s => s.name + ' ' + s.notes);
-    if (m.passivePerception) senseStrs.push('passive Perception ' + m.passivePerception);
+    const senseStrs = m.senses.map(s => escapeHtml(s.name) + ' ' + escapeHtml(s.notes));
+    if (m.passivePerception) senseStrs.push('passive Perception ' + escapeHtml(m.passivePerception));
     infoLines.push('<strong>Senses</strong> ' + senseStrs.join(', '));
   } else if (m.passivePerception) {
-    infoLines.push('<strong>Senses</strong> passive Perception ' + m.passivePerception);
+    infoLines.push('<strong>Senses</strong> passive Perception ' + escapeHtml(m.passivePerception));
   }
-  if (m.languages) infoLines.push('<strong>Languages</strong> ' + m.languages);
+  if (m.languages) infoLines.push('<strong>Languages</strong> ' + escapeHtml(m.languages));
   if (infoLines.length) html += '<div style="margin-bottom:6px;">' + infoLines.join('<br>') + '</div>';
 
   // Helper to render a section
   function section(title, text) {
     if (!text) return '';
     return '<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">' +
-      '<div style="font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--accent);margin-bottom:4px;">' + title + '</div>' +
-      '<div>' + text + '</div>' +
+      '<div style="font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--accent);margin-bottom:4px;">' + escapeHtml(title) + '</div>' +
+      '<div>' + escapeHtml(text).replace(/\n/g, '<br>') + '</div>' +
       '</div>';
   }
 
@@ -3098,59 +3158,60 @@ function enhanceQuickRefWithRolls(container) {
       p.appendChild(btnWrap);
     }
   });
-
-  // Add delegated click handler if not already present
-  if (!container.dataset.rollListener) {
-    container.dataset.rollListener = '1';
-    container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.qr-roll-btn');
-      if (!btn) return;
-      e.stopPropagation();
-      const type = btn.dataset.type;
-      let resultText = '';
-      if (type === 'atk') {
-        const mod = parseInt(btn.dataset.mod, 10);
-        const roll = rollD20();
-        const total = roll + mod;
-        resultText = formatRollResult('Attack', [roll], mod, total);
-      } else if (type === 'dmg') {
-        const parsed = parseDiceExpression(btn.dataset.expr);
-        if (parsed) {
-          const rolls = [];
-          for (let i = 0; i < parsed.count; i++) rolls.push(rollDice(1, parsed.sides));
-          const total = rolls.reduce((a, b) => a + b, 0) + parsed.bonus;
-          resultText = formatRollResult('Damage', rolls, parsed.bonus, total);
-        }
-      } else if (type === 'recharge') {
-        const min = parseInt(btn.dataset.min, 10);
-        const max = parseInt(btn.dataset.max, 10);
-        const roll = rollDice(1, 6);
-        const recharged = roll >= min && roll <= max;
-        resultText = 'Recharge: rolled <strong>' + roll + '</strong> — ' + (recharged ? '<span style="color:#2a5;">RECHARGED</span>' : '<span style="color:#f44;">Not recharged</span>');
-      }
-      if (resultText) {
-        let log = container.querySelector('.qr-roll-log');
-        if (!log) {
-          log = document.createElement('div');
-          log.className = 'qr-roll-log';
-          log.style.marginTop = '8px';
-          log.style.padding = '6px';
-          log.style.background = '#111';
-          log.style.border = '1px solid var(--border)';
-          log.style.borderRadius = '4px';
-          log.style.fontSize = '12px';
-          container.insertBefore(log, container.firstChild);
-        }
-        const entry = document.createElement('div');
-        entry.style.marginBottom = '2px';
-        entry.innerHTML = resultText;
-        log.insertBefore(entry, log.firstChild);
-        // Keep only last 5 entries
-        while (log.children.length > 5) log.removeChild(log.lastChild);
-      }
-    });
-  }
 }
+
+(function attachGlobalQuickRefRollListener() {
+  if (document.body.dataset.qrRollListener) return;
+  document.body.dataset.qrRollListener = '1';
+  document.body.addEventListener('click', (e) => {
+    const btn = e.target.closest('.qr-roll-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const container = btn.closest('#qr-content, #fullscreen-qr-content');
+    if (!container) return;
+    const type = btn.dataset.type;
+    let resultText = '';
+    if (type === 'atk') {
+      const mod = parseInt(btn.dataset.mod, 10);
+      const roll = rollD20();
+      const total = roll + mod;
+      resultText = formatRollResult('Attack', [roll], mod, total);
+    } else if (type === 'dmg') {
+      const parsed = parseDiceExpression(btn.dataset.expr);
+      if (parsed) {
+        const rolls = [];
+        for (let i = 0; i < parsed.count; i++) rolls.push(rollDice(1, parsed.sides));
+        const total = rolls.reduce((a, b) => a + b, 0) + parsed.bonus;
+        resultText = formatRollResult('Damage', rolls, parsed.bonus, total);
+      }
+    } else if (type === 'recharge') {
+      const min = parseInt(btn.dataset.min, 10);
+      const max = parseInt(btn.dataset.max, 10);
+      const roll = rollDice(1, 6);
+      const recharged = roll >= min && roll <= max;
+      resultText = 'Recharge: rolled <strong>' + roll + '</strong> — ' + (recharged ? '<span style="color:#2a5;">RECHARGED</span>' : '<span style="color:#f44;">Not recharged</span>');
+    }
+    if (resultText) {
+      let log = container.querySelector('.qr-roll-log');
+      if (!log) {
+        log = document.createElement('div');
+        log.className = 'qr-roll-log';
+        log.style.marginTop = '8px';
+        log.style.padding = '6px';
+        log.style.background = '#111';
+        log.style.border = '1px solid var(--border)';
+        log.style.borderRadius = '4px';
+        log.style.fontSize = '12px';
+        container.insertBefore(log, container.firstChild);
+      }
+      const entry = document.createElement('div');
+      entry.style.marginBottom = '2px';
+      entry.innerHTML = resultText;
+      log.insertBefore(entry, log.firstChild);
+      while (log.children.length > 5) log.removeChild(log.lastChild);
+    }
+  });
+})();
 
 function showMonsterDetail(idx) {
   const m = encounterPool[idx];
@@ -3786,61 +3847,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const fsOverlay = document.getElementById('fullscreen-qr-overlay');
   if (fsOverlay) fsOverlay.addEventListener('click', (e) => { if (e.target.id === 'fullscreen-qr-overlay') toggleFullscreenQR(); });
   // Fetch sources (books) list from server
-  fetchSources();
+  initializeSources();
 });
-
-/* ---------- SOURCES (BOOKS) ---------- */
-async function fetchSources() {
-  try {
-    console.log('DEBUG fetchSources: starting...');
-    // Note: apiGet returns data.result, but /api/sources returns {sources: [...]} directly
-    // So we need to handle the response structure differently
-    const res = await fetch('/api/sources');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    console.log('DEBUG fetchSources: raw response =', data);
-
-    const sources = data.sources || data.result?.sources || [];
-    console.log('DEBUG fetchSources: sources array =', sources);
-    console.log('DEBUG fetchSources: sources count =', sources.length);
-
-    if (sources && sources.length) {
-      const sourceFilter = document.getElementById('monster-source-filter');
-      const defaultOptions = [
-        'Monster Manual', 'Volo\'s Guide to Monsters', 'Mordenkainen\'s Tome of Foes',
-        'Fizban\'s Treasury of Dragons', 'Curse of Strahd', 'Out of the Abyss',
-        'Storm Kings Thunder', 'Tomb of Annihilation', 'Waterdeep: Dragon Heist',
-        'Waterdeep: Dungeon of the Mad Mage', 'Lost Mine of Phandelver'
-      ];
-      // Build set of source names from server + defaults
-      const sourceNames = new Set();
-      sources.forEach(s => {
-        const name = typeof s === 'object' ? (s.description || s.name) : s;
-        if (name) {
-          sourceNames.add(name);
-          console.log('DEBUG fetchSources: added source =', name);
-        }
-      });
-      console.log('DEBUG fetchSources: unique sourceNames count =', sourceNames.size);
-      console.log('DEBUG fetchSources: sourceNames from server (first 10) =', Array.from(sourceNames).slice(0, 10));
-      defaultOptions.forEach(opt => sourceNames.add(opt));
-      console.log('DEBUG fetchSources: after adding defaults, unique sourceNames count =', sourceNames.size);
-      // Sort and add to dropdown
-      const sorted = Array.from(sourceNames).sort();
-      console.log('DEBUG fetchSources: total unique sources =', sorted.length);
-      sourceFilter.innerHTML = '<option value="">Any Book</option>';
-      sorted.forEach(name => {
-        sourceFilter.innerHTML += '<option value="' + name + '">' + name + '</option>';
-      });
-      console.log('DEBUG fetchSources: dropdown populated with', sorted.length, 'options');
-      logRPC('>> SOURCES: Loaded ' + sorted.length + ' book(s)');
-    } else {
-      console.warn('DEBUG fetchSources: no sources found');
-    }
-  } catch (e) {
-    console.error('DEBUG fetchSources: FAILED:', e.message);
-  }
-}
 
 /* All UI updates are instantaneous — zero animation, zero easing. */
 </script>
