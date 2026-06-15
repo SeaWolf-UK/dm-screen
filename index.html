@@ -582,23 +582,9 @@
     </div>
   </section>
 
-  <!-- Page 5: SOUNDBOARD — opens in separate window to avoid renderer memory pressure -->
+  <!-- Page 5: SOUNDBOARD — integrated inline via iframe -->
   <section class="page" id="page-5">
-    <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
-      <div style="text-align:center;max-width:500px;">
-        <div style="font-family:var(--font-display);font-weight:800;font-size:24px;margin-bottom:16px;">TTRPG SOUNDBOARD</div>
-        <div style="color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6;">
-          The soundboard opens in its own window to prevent audio memory from competing with the DM Cockpit renderer.
-          <br><br>
-          Once opened, click the <strong>🎵</strong> button on any encounter in the Encounter Builder (F2) to auto-generate a soundscape.
-        </div>
-        <button class="button" id="open-soundboard-btn" style="font-size:16px;padding:14px 24px;">[ OPEN SOUNDBOARD IN NEW WINDOW ]</button>
-        <div id="soundboard-fallback" style="display:none;margin-top:12px;">
-          <a href="/soundboard" target="_blank" style="color:var(--accent);font-size:13px;text-decoration:underline;">Popup blocked — click here to open soundboard</a>
-        </div>
-        <div id="soundboard-status" style="margin-top:16px;color:var(--muted);font-size:12px;">Not connected</div>
-      </div>
-    </div>
+    <iframe id="soundboard-iframe" src="/soundboard" title="TTRPG Soundboard" style="width:100%;height:100%;border:none;display:block;" allow="autoplay; fullscreen"></iframe>
   </section>
 
   <!-- Footer -->
@@ -1769,8 +1755,8 @@ function makeEncounterNameUnique(base) {
 }
 
 /* ---------- SOUNDBOARD BRIDGE ---------- */
-let soundboardWindow = null;
 let soundboardChannel = null;
+const soundboardIframe = () => document.getElementById('soundboard-iframe');
 
 try {
   soundboardChannel = new BroadcastChannel('dm-cockpit-soundboard');
@@ -1778,46 +1764,14 @@ try {
   console.warn('BroadcastChannel not supported');
 }
 
-function openSoundboardWindow() {
-  if (soundboardWindow && !soundboardWindow.closed) {
-    soundboardWindow.focus();
-    return;
-  }
-  soundboardWindow = window.open('/soundboard', 'dm-cockpit-soundboard', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
-  const fallbackEl = document.getElementById('soundboard-fallback');
-  if (!soundboardWindow) {
-    logRPC('>> ERR  popup blocked — allow popups for localhost:8765');
-    if (fallbackEl) fallbackEl.style.display = 'block';
-    alert('Popup blocked. Please allow popups for localhost:8765, or click the link below to open the soundboard.');
-    return;
-  }
-  if (fallbackEl) fallbackEl.style.display = 'none';
-  const statusEl = document.getElementById('soundboard-status');
-  if (statusEl) statusEl.textContent = 'Soundboard window opened';
-  logRPC('>> SND  soundboard window opened');
-
-  const poll = setInterval(() => {
-    if (soundboardWindow.closed) {
-      clearInterval(poll);
-      if (statusEl) statusEl.textContent = 'Not connected';
-      soundboardWindow = null;
-      logRPC('>> SND  soundboard window closed');
-    }
-  }, 1000);
-}
-
 function sendToSoundboard(enc) {
-  // Always use BroadcastChannel if available — works across tabs even if opened manually
+  // BroadcastChannel reaches the embedded iframe and any other same-origin soundboard tabs
   _sendViaBroadcast(enc);
-  // Also try window reference for focus + postMessage fallback
-  if (!soundboardWindow || soundboardWindow.closed) {
-    openSoundboardWindow();
-    setTimeout(() => {
-      _sendViaPostMessage(enc);
-    }, 1500);
-    return;
-  }
+  // Also send directly to the embedded iframe for reliability and focus feedback
   _sendViaPostMessage(enc);
+  // Bring the soundboard workspace into view so the user sees the generated prompt
+  activatePage(5);
+  logRPC('>> SND  switched to F5 soundboard for encounter: ' + enc.name);
 }
 
 function _buildPrompt(enc) {
@@ -1835,12 +1789,15 @@ function _sendViaBroadcast(enc) {
 }
 
 function _sendViaPostMessage(enc) {
-  if (!soundboardWindow || soundboardWindow.closed) return;
+  const iframe = soundboardIframe();
+  if (!iframe || !iframe.contentWindow) return;
   const prompt = _buildPrompt(enc);
-  soundboardWindow.postMessage({ type: 'DM_COCKPIT_SET_PROMPT', prompt: prompt }, '*');
-  try { soundboardWindow.focus(); } catch (e) {}
-  logRPC('>> SND  sent encounter to soundboard: ' + enc.name);
+  iframe.contentWindow.postMessage({ type: 'DM_COCKPIT_SET_PROMPT', prompt: prompt }, '*');
+  try { iframe.contentWindow.focus(); } catch (e) {}
+  logRPC('>> SND  sent encounter to embedded soundboard: ' + enc.name);
 }
+
+/* Legacy support: opening the soundboard in a separate tab/window still works via /soundboard */
 
 /* ---------- ENCOUNTER LIBRARY ---------- */
 function getDifficultyBadgeClass(difficulty) {
@@ -3777,10 +3734,6 @@ document.getElementById('copy-handout-btn').addEventListener('click', async () =
   } catch (e) {
     logRPC('>> CLIPBOARD ERROR: ' + e.message);
   }
-});
-
-document.getElementById('open-soundboard-btn').addEventListener('click', () => {
-  openSoundboardWindow();
 });
 
 /* ============================================================

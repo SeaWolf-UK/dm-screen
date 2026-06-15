@@ -1788,7 +1788,10 @@ async function start() {
       if (req.method === 'GET' && (pathname === '/soundboard' || pathname === '/soundboard.html')) {
         const sbPath = path.join(__dirname, 'soundboard.html');
         const html = await fs.readFile(sbPath, 'utf-8');
-        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.writeHead(200, {
+          'Content-Type': 'text/html',
+          'X-Frame-Options': 'SAMEORIGIN'
+        });
         res.end(html);
         return;
       }
