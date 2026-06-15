@@ -1297,6 +1297,8 @@ const App = () => {
       if (data && data.type === 'DM_COCKPIT_SET_PROMPT') {
         const prompt = data.prompt || '';
         setAiPrompt(prompt);
+        setIsAdvancedMode(true);
+        localStorage.setItem('isAdvancedMode', 'true');
         logEvent('Received prompt from DM Cockpit', 'info', { prompt });
         const aiSection = document.getElementById('ai-scene-section');
         if (aiSection) aiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
