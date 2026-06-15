@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=▶ Start DM Cockpit
 Comment=Launch the Tactical DM Cockpit server
-Exec=bash "/home/adrian/Projects/DM_Screen/START_COCKPIT.sh"
+Exec=bash -c 'DESKTOP_FILE="$1"; DIR="${DESKTOP_FILE%/*}"; cd "$DIR" && bash START_COCKPIT.sh' _ %k
 Type=Application
 Terminal=true
 Icon=utilities-terminal
